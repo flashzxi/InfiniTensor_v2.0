@@ -16,13 +16,20 @@ def convert_add(translator, node):
     translator.tensors[node] = translator.builder.add(a, b, None)
 
 @registry.register("mul","Tensor")
-def convert_add(translator, node):
+def convert_mul(translator, node):
     a = translator.tensors[node.args[0]]
     b = translator.tensors[node.args[1]]
-    translator.tensors[node] = translator.builder.add(a, b, None)
+    translator.tensors[node] = translator.builder.mul(a, b, None)
 
 @registry.register("sub","Tensor")
-def convert_add(translator, node):
+def convert_sub(translator, node):
     a = translator.tensors[node.args[0]]
     b = translator.tensors[node.args[1]]
-    translator.tensors[node] = translator.builder.add(a, b, None)
+    translator.tensors[node] = translator.builder.sub(a, b, None)
+
+@registry.register("clamp","Tensor")
+def convert_clamp(translator, node):
+    t = translator.tensors[node.args[0]]
+    mmin = translator.tensors[node.args[1]]
+    mmax = translator.tensors[node.args[2]]
+    translator.tensors[node] = translator.builder.clamp(t, mmin, mmax, None)

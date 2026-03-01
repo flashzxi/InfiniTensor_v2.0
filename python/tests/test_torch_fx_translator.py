@@ -113,6 +113,57 @@ def test_basic_elementwise(runtime, torch_rng_seed):
     print("✅ Test passed!")
 
 
+def test_dynamic_clip(runtime, torch_rng_seed):
+    """Test torch.clamp with dynamic shapes"""
+    print(f"Testing with runtime on device: {runtime}")
+    print(f"Random seed: {torch_rng_seed}")
+
+    # Create simple model
+    class ClipModel(torch.nn.Module):
+        def forward(self, x, min_val, max_val):
+            return torch.clamp(x, min=min_val, max=max_val)
+
+    model = ClipModel()
+    # Randomly initialize inputs (x, min_val, max_val)
+    # min and max have the same shape as input (no broadcasting needed)
+    input_info = [((5, 4), "float32"), ((5, 4), "float32"), ((5, 4), "float32")]
+    input_tensors = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info
+    ]
+    # Set min and max values
+    input_tensors[1].fill_(-1.0)
+    input_tensors[2].fill_(1.0)
+
+    # Create translator
+    translator = TorchFXTranslator(runtime)
+    translator.import_from_fx(model, input_tensors)
+
+    # First run with different shape
+    input_info_1 = [((15, 12), "float32"), ((15, 12), "float32"), ((15, 12), "float32")]
+    input_tensors_1 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_1
+    ]
+    input_tensors_1[1].fill_(-0.5)
+    input_tensors_1[2].fill_(0.5)
+    translator.run(input_tensors_1)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (15, 12)
+
+    # Second run with another shape
+    input_info_2 = [((3, 20), "float32"), ((3, 20), "float32"), ((3, 20), "float32")]
+    input_tensors_2 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_2
+    ]
+    input_tensors_2[1].fill_(0.0)
+    input_tensors_2[2].fill_(2.0)
+    translator.run(input_tensors_2)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (3, 20)
+    print("✅ Test passed!")
+
 if __name__ == "__main__":
     # Can run this file directly
     import sys

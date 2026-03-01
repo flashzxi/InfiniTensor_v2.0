@@ -30,6 +30,18 @@ Tensor GraphBuilderObj::gemm(Tensor A, Tensor B, Tensor C, float alpha,
     }
 }
 
+Tensor GraphBuilderObj::clip(Tensor IN, Tensor MIN, Tensor MAX, std::optional<Tensor> Y)
+{
+    if (Y.has_value()) {
+        g->addOpWithOutputs<ClipObj>(std::move(IN), std::move(Y.value()), std::move(MAX), std::move(MIN));
+        return Y.value();
+    } else {
+        return g
+            ->addOp<ClipObj>(std::move(IN), nullptr, std::move(MAX), std::move(MIN))
+            ->getOutput(0);
+    }
+}
+
 #define DEFINE_BINARY_OP(OP, TYPE)                                             \
     Tensor GraphBuilderObj::OP(Tensor A, Tensor B, std::optional<Tensor> Y) {  \
         if (Y.has_value()) {                                                   \
