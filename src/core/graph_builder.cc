@@ -1,5 +1,7 @@
 #include "core/graph_builder.h"
 
+#include "operators/Conv.h"
+
 namespace infini {
 
 GraphBuilderObj::GraphBuilderObj(Runtime runtime)
@@ -38,6 +40,22 @@ Tensor GraphBuilderObj::clip(Tensor IN, Tensor MIN, Tensor MAX, std::optional<Te
     } else {
         return g
             ->addOp<ClipObj>(std::move(IN), nullptr, std::move(MAX), std::move(MIN))
+            ->getOutput(0);
+    }
+}
+
+Tensor GraphBuilderObj::conv(Tensor x, Tensor weight, Tensor bias,
+        const std::vector<size_t>& strides, const std::vector<size_t>& paddings,
+        const std::vector<size_t>& dilations, int n, std::optional<Tensor> Y) {
+    if (Y.has_value()) {
+        auto result = Y.value();
+        g->addOpWithOutputs<ConvObj>(std::move(x), std::move(weight), std::move(bias),
+                                     strides, dilations, paddings, std::move(Y.value()));
+        return result;
+    } else {
+        return g
+            ->addOp<ConvObj>(std::move(x), std::move(weight), std::move(bias),
+                                 strides, dilations, paddings, nullptr)
             ->getOutput(0);
     }
 }

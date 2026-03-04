@@ -33,3 +33,57 @@ def convert_clamp(translator, node):
     mmin = translator.tensors[node.args[1]]
     mmax = translator.tensors[node.args[2]]
     translator.tensors[node] = translator.builder.clamp(t, mmin, mmax, None)
+
+@registry.register("conv1d","default")
+def convert_conv1d(translator, node):
+    x = translator.tensors[node.args[0]]
+    weight = translator.tensors[node.args[1]]
+    b = None if node.args[2] not in translator.tensors else translator.tensors[node.args[2]]
+
+    stride = [1,]
+    padding = [0,]
+    dilation = [1,]
+
+    if len(node.args) >= 4:
+        stride = [int(node.args[3][0]),]
+    if len(node.args) >= 5:
+        padding = [int(node.args[4][0]),]
+    if len(node.args) >= 6:
+        dilation = [int(node.args[5][0]),]
+    translator.tensors[node] = translator.builder.conv(x, weight, b, stride, padding, dilation, 1, None)
+
+@registry.register("conv2d","default")
+def convert_conv1d(translator, node):
+    x = translator.tensors[node.args[0]]
+    weight = translator.tensors[node.args[1]]
+    b = None if node.args[2] not in translator.tensors else translator.tensors[node.args[2]]
+
+    stride = [1,1]
+    padding = [0,0]
+    dilation = [1,1]
+
+    if len(node.args) >= 4:
+        stride = [int(node.args[3][0]), int(node.args[3][1])]
+    if len(node.args) >= 5:
+        padding = [int(node.args[4][0]), int(node.args[4][1])]
+    if len(node.args) >= 6:
+        dilation = [int(node.args[5][0]), int(node.args[5][1])]
+    translator.tensors[node] = translator.builder.conv(x, weight, b, stride, padding, dilation, 2, None)
+
+@registry.register("conv3d","default")
+def convert_conv1d(translator, node):
+    x = translator.tensors[node.args[0]]
+    weight = translator.tensors[node.args[1]]
+    b = None if node.args[2] not in translator.tensors else translator.tensors[node.args[2]]
+
+    stride = [1, 1, 1]
+    padding = [0, 0, 0]
+    dilation = [1, 1, 1]
+
+    if len(node.args) >= 4:
+        stride = [int(node.args[3][0]), int(node.args[3][1]), int(node.args[3][1])]
+    if len(node.args) >= 5:
+        padding = [int(node.args[4][0]), int(node.args[4][1]), int(node.args[4][2])]
+    if len(node.args) >= 6:
+        dilation = [int(node.args[5][0]), int(node.args[5][1]), int(node.args[4][2])]
+    translator.tensors[node] = translator.builder.conv(x, weight, b, stride, padding, dilation, 3, None)

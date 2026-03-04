@@ -5,9 +5,6 @@
 
 namespace infini {
     class ClipObj : public OperatorObj {
-    private:
-        float min_val;
-        float max_val;
 
     public:
         /**

@@ -13,6 +13,7 @@ struct OpType {
         Cast,
         Clip,
         Concat,
+        Conv,
         Div,
         Gemm,
         Mul,
@@ -43,6 +44,7 @@ struct OpType {
             CASE(Div);
             CASE(Cast);
             CASE(Clip);
+            CASE(Conv);
             CASE(Relu);
             CASE(Transpose);
             CASE(Concat);

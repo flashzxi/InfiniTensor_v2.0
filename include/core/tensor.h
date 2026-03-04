@@ -22,6 +22,7 @@ class TensorObj : public Object {
     vector<WRef<OperatorObj>> targets;
     WRef<OperatorObj> source;
     infiniDevice_t device = INFINI_DEVICE_CPU;
+    size_t allocated_size_ = 0; // Track allocated memory size for dynamic shapes
 
   public:
     TensorObj(ShapeExpr symbolic_shape, DataType dtype);

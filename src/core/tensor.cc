@@ -72,19 +72,21 @@ Blob TensorObj::getData() const { return data; }
 void TensorObj::setData(void *data_) {
     IT_ASSERT(data_ != nullptr);
     data = std::make_shared<BlobObj>(data_);
+    // Mark as externally managed data (size info not tracked)
+    allocated_size_ = SIZE_MAX;
 }
 
 void TensorObj::dataMalloc(const Runtime &runtime) {
-    if (data == nullptr) {
-        data = make_ref<BlobObj>(runtime->allocDevice(getTotalBytes()));
-    } else {
-        if (runtime->getCurrentThreadContext()->device != device &&
-            device == INFINI_DEVICE_CPU) {
-            void *data_ptr = runtime->allocDevice(getTotalBytes());
-            runtime->memcpy(data_ptr, data->getPtr<void *>(), getTotalBytes(),
-                            INFINIRT_MEMCPY_H2D);
-            setData(data_ptr);
-        }
+    size_t required_size = getTotalBytes();
+
+    // Skip if data is externally managed (set via setData)
+    if (allocated_size_ == SIZE_MAX) {
+        return;
+    }
+
+    if (data == nullptr || allocated_size_ < required_size) {
+        data = make_ref<BlobObj>(runtime->allocDevice(required_size));
+        allocated_size_ = required_size;
     }
     device = runtime->getCurrentThreadContext()->device;
 }

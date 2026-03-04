@@ -29,6 +29,9 @@ void bind_graph_builder(py::module &m) {
              py::arg("Y") = py::none())
         .def("clamp", &GraphBuilderObj::clip, py::arg("IN"), py::arg("MIN"), py::arg("MAX"),
              py::arg("Y") = py::none())
+        .def("conv", &GraphBuilderObj::conv, py::arg("x"), py::arg("weight"), py::arg("bias"),
+             py::arg("stride"), py::arg("padding"), py::arg("dilation"), py::arg("n"),
+             py::arg("Y") = py::none())
         .def("to_string", &GraphBuilderObj::printGraph)
         .def_property_readonly("graph", &GraphBuilderObj::getGraph);
 }

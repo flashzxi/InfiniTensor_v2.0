@@ -27,6 +27,9 @@ class GraphBuilderObj {
     Tensor sub(Tensor A, Tensor B, std::optional<Tensor> Y = std::nullopt);
     Tensor mul(Tensor A, Tensor B, std::optional<Tensor> Y = std::nullopt);
     Tensor clip(Tensor in, Tensor min_val, Tensor max, std::optional<Tensor> Y = std::nullopt);
+    Tensor conv(Tensor x, Tensor weight, Tensor bias,
+        const std::vector<size_t>& strides, const std::vector<size_t>& paddings,
+        const std::vector<size_t>& dilations, int n, std::optional<Tensor> Y);
     string printGraph() const;
 
     Graph getGraph() const;
