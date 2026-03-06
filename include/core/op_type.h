@@ -21,6 +21,7 @@ struct OpType {
         Relu,
         Sub,
         Transpose,
+        LayerNorm,
 
     } type;
 

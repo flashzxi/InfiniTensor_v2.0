@@ -32,6 +32,8 @@ void bind_graph_builder(py::module &m) {
         .def("conv", &GraphBuilderObj::conv, py::arg("x"), py::arg("weight"), py::arg("bias"),
              py::arg("stride"), py::arg("padding"), py::arg("dilation"), py::arg("n"),
              py::arg("Y") = py::none())
+        .def("layer_norm", &GraphBuilderObj::layer_norm, py::arg("x"), py::arg("weight"), py::arg("bias"),
+             py::arg("eps"), py::arg("Y") = py::none(), py::arg("Norm") = py::none(), py::arg("Std") = py::none())
         .def("to_string", &GraphBuilderObj::printGraph)
         .def_property_readonly("graph", &GraphBuilderObj::getGraph);
 }

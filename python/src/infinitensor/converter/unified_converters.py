@@ -70,7 +70,7 @@ def convert_conv1d(translator, node):
         dilation = [int(node.args[5][0]), int(node.args[5][1])]
     translator.tensors[node] = translator.builder.conv(x, weight, b, stride, padding, dilation, 2, None)
 
-@registry.register("conv3d","default")
+@registry.register("conv3d", "default")
 def convert_conv1d(translator, node):
     x = translator.tensors[node.args[0]]
     weight = translator.tensors[node.args[1]]
@@ -87,3 +87,16 @@ def convert_conv1d(translator, node):
     if len(node.args) >= 6:
         dilation = [int(node.args[5][0]), int(node.args[5][1]), int(node.args[4][2])]
     translator.tensors[node] = translator.builder.conv(x, weight, b, stride, padding, dilation, 3, None)
+
+@registry.register("layer_norm", "default")
+def convert_layer_norm(translator, node):
+    x = translator.tensors[node.args[0]]
+    # shape下游infiniCore不支持
+    shape = node.args[1]
+    # 下游要求weight必须存在，bias不一定
+    weight = translator.tensors[node.args[2]]
+    bias = None if node.args[3] not in translator.tensors else translator.tensors[node.args[3]]
+    eps = 1e-5
+    if len(node.args) >= 5:
+        eps = node.args[4]
+    translator.tensors[node] = translator.builder.layer_norm(x, weight, bias, eps)

@@ -113,8 +113,8 @@ class TorchFXTranslator:
     def _st_expr_to_str(self, st):
         if not hasattr(st, "node") or len(st.node.expr.args) == 0:
             sym_str = str(st)
-            assert self.symbols.get(sym_str)
-            return self.symbols.get(sym_str)["var"]
+            assert str(sym_str).isdigit() or self.symbols.get(sym_str)
+            return sym_str if str(sym_str).isdigit() else self.symbols.get(sym_str)["var"]
         else:
             if st.node.expr.is_Mul:
                 return f"({self._st_expr_to_str(st.node.expr.args[0])}*{self._st_expr_to_str(st.node.expr.args[1])})"
@@ -130,11 +130,13 @@ class TorchFXTranslator:
             dtype = dtype_from_string(str(tensor.dtype))
             for j, (dim, st) in enumerate(zip(shape[::-1], stride[::-1])):
                 # Handle shape information
-                if (
+                # Check if dimension is symbolic (has a node) vs concrete (just a number)
+                is_symbolic = (
                     hasattr(torch, "SymInt")
                     and isinstance(dim, torch.SymInt)
-                    and not str(dim).isdigit()
-                ):
+                    and hasattr(dim, "node")  # Symbolic dims have a node
+                )
+                if is_symbolic:
                     # Handle symbolic dimension
                     sym_str = str(dim)
                     self._add_symbol(sym_str, i, j)
@@ -143,11 +145,12 @@ class TorchFXTranslator:
                     # Concrete dimension
                     tensor_shape.insert(0, int(dim))
                 # Handle stride information
-                if (
+                is_stride_symbolic = (
                     hasattr(torch, "SymInt")
                     and isinstance(st, torch.SymInt)
-                    and not str(st).isdigit()
-                ):
+                    and hasattr(st, "node")  # Symbolic strides have a node
+                )
+                if is_stride_symbolic:
                     # Handle symbolic dimension
                     sym_str = self._st_expr_to_str(st)
                     # assert self.symbols.get(sym_str)

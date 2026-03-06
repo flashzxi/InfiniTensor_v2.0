@@ -160,7 +160,7 @@ void TensorObj::removeTarget(const Operator &op) {
     }
 }
 
-StrideExpr TensorObj::computeContiguousStride(const ShapeExpr &shape) const {
+StrideExpr TensorObj::computeContiguousStride(const ShapeExpr &shape) {
     auto rank = shape->size();
     vector<Expr> strides(rank);
     Expr acc = ExprObj::constant(1);

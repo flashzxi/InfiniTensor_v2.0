@@ -7,6 +7,8 @@
 #include "operators/ElementWise.h"
 #include "operators/Gemm.h"
 #include "operators/Clip.h"
+#include "operators/Conv.h"
+#include "operators/LayerNorm.h"
 
 namespace infini {
 
@@ -30,6 +32,8 @@ class GraphBuilderObj {
     Tensor conv(Tensor x, Tensor weight, Tensor bias,
         const std::vector<size_t>& strides, const std::vector<size_t>& paddings,
         const std::vector<size_t>& dilations, int n, std::optional<Tensor> Y);
+    Tensor layer_norm(Tensor x, Tensor weight, Tensor bias, float eps,
+        std::optional<Tensor> Y, std::optional<Tensor> Norm, std::optional<Tensor> Std);
     string printGraph() const;
 
     Graph getGraph() const;

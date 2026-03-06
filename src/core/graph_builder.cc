@@ -1,7 +1,5 @@
 #include "core/graph_builder.h"
 
-#include "operators/Conv.h"
-
 namespace infini {
 
 GraphBuilderObj::GraphBuilderObj(Runtime runtime)
@@ -56,6 +54,21 @@ Tensor GraphBuilderObj::conv(Tensor x, Tensor weight, Tensor bias,
         return g
             ->addOp<ConvObj>(std::move(x), std::move(weight), std::move(bias),
                                  strides, dilations, paddings, nullptr)
+            ->getOutput(0);
+    }
+}
+
+Tensor GraphBuilderObj::layer_norm(Tensor x, Tensor weight, Tensor bias, float eps,
+        std::optional<Tensor> Y, std::optional<Tensor> Norm, std::optional<Tensor> Std) {
+    if (Y.has_value()) {
+        auto result = Y.value();
+        g->addOpWithOutputs<LayerNormObj>(std::move(x), std::move(weight), std::move(bias),
+            eps, std::move(Y.value()), std::move(Norm.value()), std::move(Std.value()));
+        return result;
+    } else {
+        return g
+            ->addOp<LayerNormObj>(std::move(x), std::move(weight), std::move(bias),
+                eps, nullptr, nullptr, nullptr)
             ->getOutput(0);
     }
 }

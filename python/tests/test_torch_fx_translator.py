@@ -166,7 +166,9 @@ def test_clip(runtime, torch_rng_seed):
     assert outputs[0].shape == (3, 20)
     print("✅ Test passed!")
 
-def test_conv(runtime, torch_rng_seed):
+# infiniCore 要求输入x 的rank至少为3
+# weight, bias只能是rank = 1
+def test_dynamic_conv(runtime, torch_rng_seed):
     """Test torch.conv1d, conv2d, conv3d with stride, padding, dilation"""
     print(f"Testing with runtime on device: {runtime}")
     print(f"Random seed: {torch_rng_seed}")
@@ -273,6 +275,53 @@ def test_conv(runtime, torch_rng_seed):
     assert outputs[0].shape == torch_shape
     print("✅ conv3d test passed!")
     print("✅ All conv tests passed!")
+
+def test_dynamic_layernorm(runtime, torch_rng_seed):
+    """Test torch.native_layer_norm with dynamic shapes"""
+    print(f"Testing with runtime on device: {runtime}")
+    print(f"Random seed: {torch_rng_seed}")
+
+    # 使用 torch.nn.functional.layer_norm
+    # 注意：normalized_shape 需要是固定的，不能动态变化
+    # 这里我们测试特征维度固定为 16 的情况
+    class LayerNormModel(torch.nn.Module):
+        def forward(self, x, weight, bias):
+            # normalized_shape 固定为 16
+            return torch.nn.functional.layer_norm(x, [16], weight=weight, bias=bias, eps=1e-3)
+
+    model = LayerNormModel()
+    # Initial input: [batch, features=16]
+    input_info = [((4, 5, 16), "float32"), ((16,), "float32"), ((16,), "float32")]
+    input_tensors = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info
+    ]
+
+    # Create translator
+    translator = TorchFXTranslator(runtime)
+    translator.import_from_fx(model, input_tensors)
+
+    # First run with different batch size, but same features=16
+    input_info_1 = [((3, 10, 16), "float32"), ((16,), "float32"), ((16,), "float32")]
+    input_tensors_1 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_1
+    ]
+    translator.run(input_tensors_1)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (3, 10, 16)
+
+    # Second run with another batch size, same features=16
+    input_info_2 = [((1, 3, 16), "float32"), ((16,), "float32"), ((16,), "float32")]
+    input_tensors_2 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_2
+    ]
+    translator.run(input_tensors_2)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (1, 3, 16)
+    print("✅ LayerNorm test passed!")
+
 
 if __name__ == "__main__":
     # Can run this file directly
