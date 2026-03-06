@@ -182,10 +182,26 @@ TEST(Conv, Conv_SingleDevice_NVIDIA_F32) {
         biasData[i] = 0.5f;
     }
 
+    // Set input data (CPU pointers) BEFORE dataMalloc to skip GPU allocation
     input->setData(inputData.data());
     weight->setData(weightData.data());
     bias->setData(biasData.data());
+    // Allocate memory (output only, inputs are externally managed)
     runtime->dataMalloc(g);
+
+    // Manually copy input data from CPU to GPU device memory
+    void *deviceInput = runtime->allocDevice(input->getTotalBytes());
+    void *deviceWeight = runtime->allocDevice(weight->getTotalBytes());
+    void *deviceBias = runtime->allocDevice(bias->getTotalBytes());
+    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceWeight, weightData.data(), weight->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceBias, biasData.data(), bias->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    input->setData(deviceInput);
+    weight->setData(deviceWeight);
+    bias->setData(deviceBias);
 
     // Execute computation
     runtime->run(g);
@@ -216,6 +232,16 @@ TEST(Conv, Conv_SingleDevice_NVIDIA_F32) {
     }
 
     std::cout << "NVIDIA F32 Conv Test PASSED" << std::endl;
+
+    // Clean up device memory
+    runtime->deallocDevice(deviceInput);
+    runtime->deallocDevice(deviceWeight);
+    runtime->deallocDevice(deviceBias);
+    // Clean up output memory allocated by dataMalloc
+    auto outputDataPtr = output->getData();
+    if (outputDataPtr) {
+        runtime->deallocDevice(outputDataPtr->getRawDataPtr());
+    }
 }
 #endif
 

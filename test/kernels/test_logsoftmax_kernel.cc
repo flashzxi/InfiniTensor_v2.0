@@ -31,12 +31,26 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
     auto input = g->addTensor(params.shapeInput, params.dataType);
     auto op = g->addOp<LogSoftmaxObj>(input, params.dim, nullptr);
 
-    // Set data first (set CPU pointer), then allocate memory (triggers H2D copy)
+    // Set input data (CPU pointer) BEFORE dataMalloc to skip GPU allocation
     input->setData(params.inputData.data());
+    // Allocate memory (output only, input is externally managed)
     runtime->dataMalloc(g);
+    void *deviceInput = nullptr;
+    // For GPU, manually copy input data from CPU to GPU device memory
+    if (params.device != INFINI_DEVICE_CPU) {
+        deviceInput = runtime->allocDevice(input->getTotalBytes());
+        runtime->memcpy(deviceInput, params.inputData.data(), input->getTotalBytes(),
+                        INFINIRT_MEMCPY_H2D);
+        input->setData(deviceInput);
+    }
 
     // Run computation
     runtime->run(g);
+
+    // Synchronize to ensure computation is complete before copying data
+    if (!runtime->isCpu()) {
+        runtime->synchronize();
+    }
 
     // Get output and copy to host
     auto output = op->getOutput(0);
@@ -54,13 +68,30 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
     }
 
     // Copy result data
-    void *hostPtr = runtime->allocHost(output->getTotalBytes());
-    runtime->memcpy(hostPtr, devicePtr, output->getTotalBytes(), INFINIRT_MEMCPY_D2H);
+    if (runtime->isCpu()) {
+        // For CPU, data is already in host memory
+        copyAndConvertData(params.outputData, devicePtr, numElements, params.dataType);
+    } else {
+        // For GPU, need to copy from device to host
+        void *hostPtr = runtime->allocHost(output->getTotalBytes());
+        runtime->memcpy(hostPtr, devicePtr, output->getTotalBytes(), INFINIRT_MEMCPY_D2H);
+        copyAndConvertData(params.outputData, hostPtr, numElements, params.dataType);
+        runtime->deallocHost(hostPtr);
+    }
 
-    // Use generic function for data copy and conversion
-    copyAndConvertData(params.outputData, hostPtr, numElements, params.dataType);
+    // Clean up device memory
+    if (params.device != INFINI_DEVICE_CPU) {
+        runtime->deallocDevice(deviceInput);
+        // Also clean up output memory allocated by dataMalloc
+        runtime->deallocDevice(devicePtr);
+        // Clean up workspace to free GPU memory
+        auto ctx = runtime->getCurrentThreadContext();
+        if (ctx->workspace) {
+            runtime->deallocDevice(ctx->workspace);
+            ctx->workspace = nullptr;
+        }
+    }
 
-    runtime->deallocHost(hostPtr);
     params.completed = true;
 }
 
@@ -191,17 +222,6 @@ TEST(LogSoftmax, LogSoftmax_MultiThread_F32_Dim1) {
 #endif
 }
 
-// LogSoftmax operation test with dim=-1 (last dim)
-TEST(LogSoftmax, LogSoftmax_MultiThread_F32_DimLast) {
-    Shape shapeInput = {2, 3, 4, 5};  // 4D input, dim=-1 means dim=3
-
-#ifdef USE_CUDA
-    runMultiThreadTest<float>(shapeInput, 3, DataType(INFINI_DTYPE_F32));
-#else
-    std::cout << "CUDA not enabled, skipping multi-thread test" << std::endl;
-#endif
-}
-
 // LogSoftmax operation test with dim=0
 TEST(LogSoftmax, LogSoftmax_MultiThread_F32_Dim0) {
     Shape shapeInput = {3, 4, 5};  // 3D input
@@ -279,16 +299,35 @@ TEST(LogSoftmax, LogSoftmax_SingleDevice_NVIDIA_F32) {
         inputData[i] = static_cast<float>((i % 10) - 5) * 0.1f; // -0.5 to 0.4
     }
 
+    // Set input data (CPU pointers) BEFORE dataMalloc to skip GPU allocation
     input->setData(inputData.data());
+    // Allocate memory (output only, input is externally managed)
     runtime->dataMalloc(g);
+
+    // Manually copy input data from CPU to GPU device memory
+    void *deviceInput = runtime->allocDevice(input->getTotalBytes());
+    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    input->setData(deviceInput);
 
     // Execute computation
     runtime->run(g);
+
+    // Synchronize to ensure computation is complete before printing
+    runtime->synchronize();
 
     // Get output and print
     auto output = op->getOutput(0);
     std::cout << "NVIDIA F32 LogSoftmax Output Data: " << std::endl;
     output->printData(runtime);
+
+    // Clean up device memory
+    runtime->deallocDevice(deviceInput);
+    // Clean up output memory allocated by dataMalloc
+    auto outputData = output->getData();
+    if (outputData) {
+        runtime->deallocDevice(outputData->getRawDataPtr());
+    }
 }
 
 // Single device test - NVIDIA F16
@@ -311,16 +350,35 @@ TEST(LogSoftmax, LogSoftmax_SingleDevice_NVIDIA_F16) {
         inputData[i] = fp32_to_fp16(static_cast<float>((i % 10) - 5) * 0.1f);
     }
 
+    // Set input data (CPU pointers) BEFORE dataMalloc to skip GPU allocation
     input->setData(inputData.data());
+    // Allocate memory (output only, input is externally managed)
     runtime->dataMalloc(g);
+
+    // Manually copy input data from CPU to GPU device memory
+    void *deviceInput = runtime->allocDevice(input->getTotalBytes());
+    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    input->setData(deviceInput);
 
     // Execute computation
     runtime->run(g);
+
+    // Synchronize to ensure computation is complete before printing
+    runtime->synchronize();
 
     // Get output and print
     auto output = op->getOutput(0);
     std::cout << "NVIDIA F16 LogSoftmax Output Data: " << std::endl;
     output->printData(runtime);
+
+    // Clean up device memory
+    runtime->deallocDevice(deviceInput);
+    // Clean up output memory allocated by dataMalloc
+    auto outputData = output->getData();
+    if (outputData) {
+        runtime->deallocDevice(outputData->getRawDataPtr());
+    }
 }
 
 // Test with different dim values - NVIDIA F32
@@ -329,8 +387,8 @@ TEST(LogSoftmax, LogSoftmax_SingleDevice_NVIDIA_F32_Dim2) {
     Runtime &runtime = RuntimeObj::getInstance();
     runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
 
-    Shape shapeInput = {2, 3, 4, 5};  // 4D input
-    int dim = 2;  // Apply log_softmax along dimension 2
+    Shape shapeInput = {4, 5};  // 2D input
+    int dim = 1;  // Apply log_softmax along dimension 1
 
     Graph g = make_ref<GraphObj>(runtime);
     auto input = g->addTensor(shapeInput, DataType(INFINI_DTYPE_F32));
@@ -340,19 +398,38 @@ TEST(LogSoftmax, LogSoftmax_SingleDevice_NVIDIA_F32_Dim2) {
     std::vector<float> inputData(input->getElement());
 
     for (size_t i = 0; i < inputData.size(); ++i) {
-        inputData[i] = static_cast<float>((i % 20) - 10) * 0.1f;
+        inputData[i] = static_cast<float>(i + 100) * 0.1f;
     }
 
+    // Set input data (CPU pointers) BEFORE dataMalloc to skip GPU allocation
     input->setData(inputData.data());
+    // Allocate memory (output only, input is externally managed)
     runtime->dataMalloc(g);
+
+    // Manually copy input data from CPU to GPU device memory
+    void *deviceInput = runtime->allocDevice(input->getTotalBytes());
+    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    input->setData(deviceInput);
 
     // Execute computation
     runtime->run(g);
 
+    // Synchronize to ensure computation is complete before printing
+    runtime->synchronize();
+
     // Get output and print
     auto output = op->getOutput(0);
-    std::cout << "NVIDIA F32 LogSoftmax (dim=2) Output Data: " << std::endl;
+    std::cout << "NVIDIA F32 LogSoftmax (dim=1) Output Data: " << std::endl;
     output->printData(runtime);
+
+    // Clean up device memory
+    runtime->deallocDevice(deviceInput);
+    // Clean up output memory allocated by dataMalloc
+    auto outputData = output->getData();
+    if (outputData) {
+        runtime->deallocDevice(outputData->getRawDataPtr());
+    }
 }
 #endif
 

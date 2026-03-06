@@ -42,8 +42,6 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
     }
     auto op = g->addOp<LayerNormObj>(x, weight, bias, params.eps, nullptr, nullptr, nullptr);
 
-    // Set data first (set CPU pointer), then allocate memory (triggers H2D
-    // copy)
     x->setData(params.xData.data());
     weight->setData(params.weightData.data());
     if (bias) {
@@ -51,8 +49,36 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
     }
     runtime->dataMalloc(g);
 
+    // Track device pointers for cleanup
+    void *deviceX = nullptr;
+    void *deviceWeight = nullptr;
+    void *deviceBias = nullptr;
+
+    // For GPU, manually copy input data from CPU to GPU device memory
+    if (params.device != INFINI_DEVICE_CPU) {
+        deviceX = runtime->allocDevice(x->getTotalBytes());
+        deviceWeight = runtime->allocDevice(weight->getTotalBytes());
+        runtime->memcpy(deviceX, params.xData.data(), x->getTotalBytes(),
+                        INFINIRT_MEMCPY_H2D);
+        runtime->memcpy(deviceWeight, params.weightData.data(), weight->getTotalBytes(),
+                        INFINIRT_MEMCPY_H2D);
+        x->setData(deviceX);
+        weight->setData(deviceWeight);
+        if (bias) {
+            deviceBias = runtime->allocDevice(bias->getTotalBytes());
+            runtime->memcpy(deviceBias, params.biasData.data(), bias->getTotalBytes(),
+                            INFINIRT_MEMCPY_H2D);
+            bias->setData(deviceBias);
+        }
+    }
+
     // Run computation
     runtime->run(g);
+
+    // Synchronize to ensure computation is complete before copying data
+    if (!runtime->isCpu()) {
+        runtime->synchronize();
+    }
 
     // Get outputs and copy to host
     auto y = op->getOutput(0);
@@ -76,10 +102,20 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
     if (!yDevicePtr && !runtime->isCpu()) {
         throw std::runtime_error("Y output device pointer is null on GPU device!");
     }
-    void *yHostPtr = runtime->allocHost(y->getTotalBytes());
-    runtime->memcpy(yHostPtr, yDevicePtr, y->getTotalBytes(), INFINIRT_MEMCPY_D2H);
-    copyAndConvertData(params.yData, yHostPtr, numElementsY, params.dataType);
-    runtime->deallocHost(yHostPtr);
+    if (runtime->isCpu()) {
+        // For CPU, data is already in host memory
+        copyAndConvertData(params.yData, yDevicePtr, numElementsY, params.dataType);
+    } else {
+        // For GPU, need to copy from device to host
+        void *yHostPtr = runtime->allocHost(y->getTotalBytes());
+        runtime->memcpy(yHostPtr, yDevicePtr, y->getTotalBytes(), INFINIRT_MEMCPY_D2H);
+        // Debug: check first few bytes
+        float *debugPtr = static_cast<float*>(yHostPtr);
+        std::cout << "DEBUG: First Y value after memcpy: " << debugPtr[0] << std::endl;
+        copyAndConvertData(params.yData, yHostPtr, numElementsY, params.dataType);
+        std::cout << "DEBUG: First Y value after copyAndConvertData: " << params.yData[0] << std::endl;
+        runtime->deallocHost(yHostPtr);
+    }
 
     // Copy Norm output
     auto normDataBlob = norm->getData();
@@ -90,10 +126,16 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
     if (!normDevicePtr && !runtime->isCpu()) {
         throw std::runtime_error("Norm output device pointer is null on GPU device!");
     }
-    void *normHostPtr = runtime->allocHost(norm->getTotalBytes());
-    runtime->memcpy(normHostPtr, normDevicePtr, norm->getTotalBytes(), INFINIRT_MEMCPY_D2H);
-    copyAndConvertData(params.normData, normHostPtr, numElementsNorm, params.dataType);
-    runtime->deallocHost(normHostPtr);
+    if (runtime->isCpu()) {
+        // For CPU, data is already in host memory
+        copyAndConvertData(params.normData, normDevicePtr, numElementsNorm, params.dataType);
+    } else {
+        // For GPU, need to copy from device to host
+        void *normHostPtr = runtime->allocHost(norm->getTotalBytes());
+        runtime->memcpy(normHostPtr, normDevicePtr, norm->getTotalBytes(), INFINIRT_MEMCPY_D2H);
+        copyAndConvertData(params.normData, normHostPtr, numElementsNorm, params.dataType);
+        runtime->deallocHost(normHostPtr);
+    }
 
     // Copy Std output
     auto stdDataBlob = std->getData();
@@ -104,10 +146,35 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
     if (!stdDevicePtr && !runtime->isCpu()) {
         throw std::runtime_error("Std output device pointer is null on GPU device!");
     }
-    void *stdHostPtr = runtime->allocHost(std->getTotalBytes());
-    runtime->memcpy(stdHostPtr, stdDevicePtr, std->getTotalBytes(), INFINIRT_MEMCPY_D2H);
-    copyAndConvertData(params.stdData, stdHostPtr, numElementsStd, params.dataType);
-    runtime->deallocHost(stdHostPtr);
+    if (runtime->isCpu()) {
+        // For CPU, data is already in host memory
+        copyAndConvertData(params.stdData, stdDevicePtr, numElementsStd, params.dataType);
+    } else {
+        // For GPU, need to copy from device to host
+        void *stdHostPtr = runtime->allocHost(std->getTotalBytes());
+        runtime->memcpy(stdHostPtr, stdDevicePtr, std->getTotalBytes(), INFINIRT_MEMCPY_D2H);
+        copyAndConvertData(params.stdData, stdHostPtr, numElementsStd, params.dataType);
+        runtime->deallocHost(stdHostPtr);
+    }
+
+    // Clean up device memory
+    if (params.device != INFINI_DEVICE_CPU) {
+        runtime->deallocDevice(deviceX);
+        runtime->deallocDevice(deviceWeight);
+        if (deviceBias) {
+            runtime->deallocDevice(deviceBias);
+        }
+        // Also clean up output memory allocated by dataMalloc
+        runtime->deallocDevice(yDevicePtr);
+        runtime->deallocDevice(normDevicePtr);
+        runtime->deallocDevice(stdDevicePtr);
+        // Clean up workspace to free GPU memory
+        auto ctx = runtime->getCurrentThreadContext();
+        if (ctx->workspace) {
+            runtime->deallocDevice(ctx->workspace);
+            ctx->workspace = nullptr;
+        }
+    }
 
     params.completed = true;
 }
@@ -455,10 +522,26 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F32) {
         biasData[i] = static_cast<float>(i) * 0.1f;  // 0.0, 0.1, 0.2, ...
     }
 
+    // Set input data (CPU pointers) BEFORE dataMalloc to skip GPU allocation
     x->setData(xData.data());
     weight->setData(weightData.data());
     bias->setData(biasData.data());
+    // Allocate memory (outputs only, inputs are externally managed)
     runtime->dataMalloc(g);
+
+    // Manually copy input data from CPU to GPU device memory
+    void *deviceX = runtime->allocDevice(x->getTotalBytes());
+    void *deviceWeight = runtime->allocDevice(weight->getTotalBytes());
+    void *deviceBias = runtime->allocDevice(bias->getTotalBytes());
+    runtime->memcpy(deviceX, xData.data(), x->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceWeight, weightData.data(), weight->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceBias, biasData.data(), bias->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    x->setData(deviceX);
+    weight->setData(deviceWeight);
+    bias->setData(deviceBias);
 
     // Execute computation
     runtime->run(g);
@@ -474,6 +557,24 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F32) {
     norm->printData(runtime);
     std::cout << "NVIDIA F32 LayerNorm Std Output Data: " << std::endl;
     std->printData(runtime);
+
+    // Clean up device memory
+    runtime->deallocDevice(deviceX);
+    runtime->deallocDevice(deviceWeight);
+    runtime->deallocDevice(deviceBias);
+    // Clean up output memory allocated by dataMalloc
+    auto yData = y->getData();
+    auto normData = norm->getData();
+    auto stdData = std->getData();
+    if (yData) {
+        runtime->deallocDevice(yData->getRawDataPtr());
+    }
+    if (normData) {
+        runtime->deallocDevice(normData->getRawDataPtr());
+    }
+    if (stdData) {
+        runtime->deallocDevice(stdData->getRawDataPtr());
+    }
 }
 
 // Single device test - NVIDIA F16
@@ -508,10 +609,26 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F16) {
         biasData[i] = fp32_to_fp16(static_cast<float>(i) * 0.1f);
     }
 
+    // Set input data (CPU pointers) BEFORE dataMalloc to skip GPU allocation
     x->setData(xData.data());
     weight->setData(weightData.data());
     bias->setData(biasData.data());
+    // Allocate memory (outputs only, inputs are externally managed)
     runtime->dataMalloc(g);
+
+    // Manually copy input data from CPU to GPU device memory
+    void *deviceX = runtime->allocDevice(x->getTotalBytes());
+    void *deviceWeight = runtime->allocDevice(weight->getTotalBytes());
+    void *deviceBias = runtime->allocDevice(bias->getTotalBytes());
+    runtime->memcpy(deviceX, xData.data(), x->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceWeight, weightData.data(), weight->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceBias, biasData.data(), bias->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    x->setData(deviceX);
+    weight->setData(deviceWeight);
+    bias->setData(deviceBias);
 
     // Execute computation
     runtime->run(g);
@@ -527,6 +644,24 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F16) {
     norm->printData(runtime);
     std::cout << "NVIDIA F16 LayerNorm Std Output Data: " << std::endl;
     std->printData(runtime);
+
+    // Clean up device memory
+    runtime->deallocDevice(deviceX);
+    runtime->deallocDevice(deviceWeight);
+    runtime->deallocDevice(deviceBias);
+    // Clean up output memory allocated by dataMalloc
+    auto yData = y->getData();
+    auto normData = norm->getData();
+    auto stdData = std->getData();
+    if (yData) {
+        runtime->deallocDevice(yData->getRawDataPtr());
+    }
+    if (normData) {
+        runtime->deallocDevice(normData->getRawDataPtr());
+    }
+    if (stdData) {
+        runtime->deallocDevice(stdData->getRawDataPtr());
+    }
 }
 
 // LayerNorm without bias test - NVIDIA F32
@@ -557,9 +692,21 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F32_NoBias) {
         weightData[i] = 1.0f + i * 0.1f;  // 1.0, 1.1, 1.2, ...
     }
 
+    // Set input data (CPU pointers) BEFORE dataMalloc to skip GPU allocation
     x->setData(xData.data());
     weight->setData(weightData.data());
+    // Allocate memory (outputs only, inputs are externally managed)
     runtime->dataMalloc(g);
+
+    // Manually copy input data from CPU to GPU device memory
+    void *deviceX = runtime->allocDevice(x->getTotalBytes());
+    void *deviceWeight = runtime->allocDevice(weight->getTotalBytes());
+    runtime->memcpy(deviceX, xData.data(), x->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceWeight, weightData.data(), weight->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
+    x->setData(deviceX);
+    weight->setData(deviceWeight);
 
     // Execute computation
     runtime->run(g);
@@ -573,6 +720,23 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F32_NoBias) {
     y->printData(runtime);
     std::cout << "NVIDIA F32 LayerNorm (No Bias) Std Output Data: " << std::endl;
     std->printData(runtime);
+
+    // Clean up device memory
+    runtime->deallocDevice(deviceX);
+    runtime->deallocDevice(deviceWeight);
+    // Clean up output memory allocated by dataMalloc
+    auto yData = y->getData();
+    auto normData = norm->getData();
+    auto stdData = std->getData();
+    if (yData) {
+        runtime->deallocDevice(yData->getRawDataPtr());
+    }
+    if (normData) {
+        runtime->deallocDevice(normData->getRawDataPtr());
+    }
+    if (stdData) {
+        runtime->deallocDevice(stdData->getRawDataPtr());
+    }
 }
 #endif
 
