@@ -322,6 +322,50 @@ def test_dynamic_layernorm(runtime, torch_rng_seed):
     assert outputs[0].shape == (1, 3, 16)
     print("✅ LayerNorm test passed!")
 
+def test_log_softmax(runtime, torch_rng_seed):
+    """Test torch.log_softmax with dynamic shapes"""
+    print(f"Testing with runtime on device: {runtime}")
+    print(f"Random seed: {torch_rng_seed}")
+
+    # Create simple model
+    class LogSoftmaxModel(torch.nn.Module):
+        def forward(self, x):
+            # 这个 dim 没用，下游 infiniCore 不支持 dim
+            return torch.log_softmax(x, dim=-1)
+
+    model = LogSoftmaxModel()
+    # Randomly initialize inputs
+    input_info = [((5, 4), "float32")]
+    input_tensors = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info
+    ]
+
+    # Create translator
+    translator = TorchFXTranslator(runtime)
+    translator.import_from_fx(model, input_tensors)
+
+    # First run with different shape
+    input_info_1 = [((15, 12), "float32")]
+    input_tensors_1 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_1
+    ]
+    translator.run(input_tensors_1)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (15, 12)
+
+    # Second run with another shape
+    input_info_2 = [((3, 20), "float32")]
+    input_tensors_2 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_2
+    ]
+    translator.run(input_tensors_2)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (3, 20)
+    print("✅ LogSoftmax test passed!")
+
 
 if __name__ == "__main__":
     # Can run this file directly

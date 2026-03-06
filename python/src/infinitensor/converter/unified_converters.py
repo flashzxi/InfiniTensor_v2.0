@@ -100,3 +100,9 @@ def convert_layer_norm(translator, node):
     if len(node.args) >= 5:
         eps = node.args[4]
     translator.tensors[node] = translator.builder.layer_norm(x, weight, bias, eps)
+
+@registry.register("log_softmax", "int")
+def convert_log_softmax(translator, node):
+    x = translator.tensors[node.args[0]]
+    dim = node.args[1]
+    translator.tensors[node] = translator.builder.log_softmax(x, dim)
