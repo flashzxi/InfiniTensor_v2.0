@@ -414,6 +414,42 @@ def test_softmax(runtime, torch_rng_seed, device_type):
     assert outputs[0].shape == (3, 20)
     print("✅ Softmax test passed!")
 
+def test_normalize(runtime, torch_rng_seed, device_type):
+    """Test torch.nn.functional.normalize with dynamic shapes"""
+    # 底层 infiniCore 不支持 CPU，跳过测试
+    if device_type == DeviceType.CPU:
+        pytest.skip("LpNorm is not supported on CPU backend")
+
+    print(f"Testing with runtime on device: {runtime}")
+    print(f"Random seed: {torch_rng_seed}")
+
+    # Create simple model - L2 normalization
+    class NormalizeL2Model(torch.nn.Module):
+        def forward(self, x):
+            return torch.norm(x, p=2.0, dim=1)
+
+    model = NormalizeL2Model()
+    # Randomly initialize inputs
+    input_info = [((5, 4), "float32")]
+    input_tensors = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info
+    ]
+
+    # Create translator
+    translator = TorchFXTranslator(runtime)
+    translator.import_from_fx(model, input_tensors)
+
+    # First run with different shape
+    input_info_1 = [((15, 12), "float32")]
+    input_tensors_1 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_1
+    ]
+    translator.run(input_tensors_1)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (15, 12)
+    print("✅ Normalize L2 test passed!")
 
 if __name__ == "__main__":
     # Can run this file directly

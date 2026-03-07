@@ -71,7 +71,7 @@ Blob TensorObj::getData() const { return data; }
 
 void TensorObj::setData(void *data_) {
     IT_ASSERT(data_ != nullptr);
-    // IT_ASSERT(data == nullptr); // 可以防止内存泄露
+    user_managed = true;
     data = std::make_shared<BlobObj>(data_);
 }
 
@@ -89,6 +89,9 @@ void TensorObj::reset(const Runtime &runtime) {
 void TensorObj::dataMalloc(const Runtime &runtime) {
     size_t required_size = getTotalBytes();
     if (data != nullptr) {
+        if (user_managed)
+            return;
+
         if (device == INFINI_DEVICE_CPU) {
             runtime->deallocHost(data->getPtr<void *>());
         } else {
@@ -292,7 +295,7 @@ void TensorObj::copyToHost(const Runtime &runtime) {
     runtime->memcpy(data_ptr, data->getPtr<void *>(), getTotalBytes(),
                     INFINIRT_MEMCPY_D2H);
     runtime->deallocDevice(data->getPtr<void *>());
-    setData(data_ptr);
+    data = std::make_shared<BlobObj>(data_ptr);
     device = INFINI_DEVICE_CPU;
 }
 
@@ -302,7 +305,7 @@ void TensorObj::copyToDevice(const Runtime &runtime) {
     void *data_ptr = runtime->allocDevice(getTotalBytes());
     runtime->memcpy(data_ptr, data->getPtr<void *>(), getTotalBytes(),
                     INFINIRT_MEMCPY_H2D);
-    setData(data_ptr);
+    data = std::make_shared<BlobObj>(data_ptr);
     device = runtime->getCurrentThreadContext()->device;
 }
 }; // namespace infini

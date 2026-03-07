@@ -36,6 +36,7 @@ void bind_graph_builder(py::module &m) {
              py::arg("eps"), py::arg("Y") = py::none(), py::arg("Norm") = py::none(), py::arg("Std") = py::none())
         .def("log_softmax", &GraphBuilderObj::log_softmax, py::arg("x"), py::arg("dim") = 1, py::arg("Y") = py::none())
         .def("softmax", &GraphBuilderObj::softmax, py::arg("x"), py::arg("axis") = 1, py::arg("Y") = py::none())
+        .def("lp_norm", &GraphBuilderObj::lp_norm, py::arg("x"), py::arg("axis") = 1, py::arg("p") = 2, py::arg("eps") = 1e-12f, py::arg("Y") = py::none())
         .def("to_string", &GraphBuilderObj::printGraph)
         .def_property_readonly("graph", &GraphBuilderObj::getGraph);
 }

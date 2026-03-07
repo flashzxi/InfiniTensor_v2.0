@@ -24,6 +24,7 @@ struct OpType {
         LayerNorm,
         LogSoftmax,
         Softmax,
+        LpNorm,
 
     } type;
 
@@ -55,6 +56,7 @@ struct OpType {
             CASE(LayerNorm);
             CASE(LogSoftmax);
             CASE(Softmax);
+            CASE(LpNorm);
 
         default:
             return "Unknown";

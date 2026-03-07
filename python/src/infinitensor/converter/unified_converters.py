@@ -112,3 +112,16 @@ def convert_softmax(translator, node):
     x = translator.tensors[node.args[0]]
     axis = node.args[1]
     translator.tensors[node] = translator.builder.softmax(x, axis)
+
+@registry.register("linalg_vector_norm", "default")
+def convert_normalize(translator, node):
+    x = translator.tensors[node.args[0]]
+    p = 2.0
+    dim = 1
+    if len(node.args) >= 2:
+        p = node.args[1]
+    if len(node.args) >= 3:
+        dim = node.args[2][0]
+    # if len(node.args) >= 4:
+    #     eps = node.args[3]
+    translator.tensors[node] = translator.builder.lp_norm(x, dim, int(p))

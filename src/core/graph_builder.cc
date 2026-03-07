@@ -91,6 +91,15 @@ Tensor GraphBuilderObj::softmax(Tensor x, int axis, std::optional<Tensor> Y) {
     }
 }
 
+Tensor GraphBuilderObj::lp_norm(Tensor x, int axis, int p, float eps, std::optional<Tensor> Y) {
+    if (Y.has_value()) {
+        g->addOpWithOutputs<LpNormObj>(std::move(x), axis, p, eps, std::move(Y.value()));
+        return Y.value();
+    } else {
+        return g->addOp<LpNormObj>(std::move(x), axis, p, eps, nullptr)->getOutput(0);
+    }
+}
+
 #define DEFINE_BINARY_OP(OP, TYPE)                                             \
     Tensor GraphBuilderObj::OP(Tensor A, Tensor B, std::optional<Tensor> Y) {  \
         if (Y.has_value()) {                                                   \

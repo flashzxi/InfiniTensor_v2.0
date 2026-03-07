@@ -22,6 +22,7 @@ class TensorObj : public Object {
     vector<WRef<OperatorObj>> targets;
     WRef<OperatorObj> source;
     infiniDevice_t device = INFINI_DEVICE_CPU;
+    bool user_managed = false; // if memory is managed by suser
 
   public:
     TensorObj(ShapeExpr symbolic_shape, DataType dtype);
