@@ -152,7 +152,7 @@ TEST(Conv, Conv_NoBias_CPU) {
 TEST(Conv, Conv_SingleDevice_NVIDIA_F32) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeInput = {1, 3, 5, 5};
     Shape shapeWeight = {2, 3, 3, 3};

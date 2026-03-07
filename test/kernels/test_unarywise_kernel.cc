@@ -28,7 +28,7 @@ using DataGeneratorFunc = std::function<std::vector<T>(size_t, T, T)>;
 TEST(UnaryOp, Relu_SingleDevice_NVIDIA_F32) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeInput = {2, 3, 4};
 
@@ -67,7 +67,7 @@ TEST(UnaryOp, Relu_SingleDevice_NVIDIA_F32) {
 TEST(UnaryOp, Sigmoid_SingleDevice_NVIDIA_F32) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeInput = {2, 3, 4};
 
@@ -105,7 +105,7 @@ TEST(UnaryOp, Sigmoid_SingleDevice_NVIDIA_F32) {
 TEST(UnaryOp, Silu_SingleDevice_NVIDIA_F32) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeInput = {2, 3, 4};
 
@@ -143,7 +143,7 @@ TEST(UnaryOp, Silu_SingleDevice_NVIDIA_F32) {
 TEST(UnaryOp, Gelu_SingleDevice_NVIDIA_F32) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeInput = {2, 3, 4};
 
@@ -181,7 +181,7 @@ TEST(UnaryOp, Gelu_SingleDevice_NVIDIA_F32) {
 TEST(UnaryOp, Softplus_SingleDevice_NVIDIA_F32) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeInput = {2, 3, 4};
 
@@ -219,7 +219,7 @@ TEST(UnaryOp, Softplus_SingleDevice_NVIDIA_F32) {
 TEST(UnaryOp, Tanh_SingleDevice_NVIDIA_F32) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeInput = {2, 3, 4};
 

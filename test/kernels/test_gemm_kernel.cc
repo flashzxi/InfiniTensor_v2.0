@@ -161,7 +161,7 @@ void runGemmMultiThreadTest(
 
     // GPU thread parameters
     gpuParams.device = INFINI_DEVICE_NVIDIA;
-    gpuParams.deviceId = 0;
+    gpuParams.deviceId = 5;
     gpuParams.shapeA = shapeA;
     gpuParams.shapeB = shapeB;
     gpuParams.dataType = dataType;
@@ -345,7 +345,7 @@ TEST(Gemm, SingleDevice_CPU) {
 TEST(Gemm, SingleDevice_NVIDIA_F32) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeA = {3, 5};
     Shape shapeB = {5, 2};
@@ -401,7 +401,7 @@ TEST(Gemm, SingleDevice_NVIDIA_F32) {
 TEST(Gemm, SingleDevice_NVIDIA_F16) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeA = {3, 5};
     Shape shapeB = {5, 2};

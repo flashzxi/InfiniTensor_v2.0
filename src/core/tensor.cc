@@ -69,20 +69,13 @@ void TensorObj::setStride(Stride stride_) { stride = makeStrideExpr(stride_); }
 
 Blob TensorObj::getData() const { return data; }
 
-void TensorObj::setData(void *data_) {
+void TensorObj::setData(void *data_, bool user_managed_) {
     IT_ASSERT(data_ != nullptr);
-    user_managed = true;
+    user_managed = user_managed_;
     data = std::make_shared<BlobObj>(data_);
 }
 
-void TensorObj::reset(const Runtime &runtime) {
-    if (data != nullptr) {
-        if (device == INFINI_DEVICE_CPU) {
-            runtime->deallocHost(data->getPtr<void *>());
-        } else {
-            runtime->deallocDevice(data->getPtr<void *>());
-        }
-    }
+void TensorObj::reset() {
     device = INFINI_DEVICE_CPU;
 }
 

@@ -225,7 +225,7 @@ void runMultiThreadTest(
 
     // GPU thread parameters
     gpuParams.device = INFINI_DEVICE_NVIDIA;
-    gpuParams.deviceId = 0;
+    gpuParams.deviceId = 5;
     gpuParams.shapeX = shapeX;
     gpuParams.shapeWeight = shapeWeight;
     gpuParams.shapeBias = shapeBias;
@@ -497,7 +497,7 @@ TEST(LayerNorm, LayerNorm_SingleDevice_CPU) {
 TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F32) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeX = {2, 3, 4, 5};  // 4D input
     Shape shapeWeight = {5};      // normalized_shape
@@ -584,7 +584,7 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F32) {
 TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F16) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeX = {2, 3, 4, 5};  // 4D input
     Shape shapeWeight = {5};      // normalized_shape
@@ -671,7 +671,7 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F16) {
 TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F32_NoBias) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeX = {2, 3, 4, 5};  // 4D input
     Shape shapeWeight = {5};      // normalized_shape

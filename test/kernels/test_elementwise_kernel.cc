@@ -154,7 +154,7 @@ void runMultiThreadTest(
 
     // GPU thread parameters
     gpuParams.device = INFINI_DEVICE_NVIDIA;
-    gpuParams.deviceId = 0;
+    gpuParams.deviceId = 5;
     gpuParams.opType = opType;
     gpuParams.shapeA = shapeA;
     gpuParams.shapeB = shapeB;
@@ -360,7 +360,7 @@ TEST(ElementWise, Add_SingleDevice_CPU) {
 TEST(ElementWise, Add_SingleDevice_NVIDIA_F32) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeA = {3, 1};
     Shape shapeB = {2, 3, 4};
@@ -419,7 +419,7 @@ TEST(ElementWise, Add_SingleDevice_NVIDIA_F32) {
 TEST(ElementWise, Add_SingleDevice_NVIDIA_F16) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeA = {3, 1};
     Shape shapeB = {2, 3, 4};

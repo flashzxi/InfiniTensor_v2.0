@@ -129,7 +129,7 @@ void runMultiThreadTest(
 
     // GPU thread parameters
     gpuParams.device = INFINI_DEVICE_NVIDIA;
-    gpuParams.deviceId = 4;
+    gpuParams.deviceId = 5;
     gpuParams.shapeInput = shapeInput;
     gpuParams.dataType = dataType;
     gpuParams.inputData = inputData;
@@ -283,7 +283,7 @@ TEST(LogSoftmax, LogSoftmax_SingleDevice_CPU) {
 TEST(LogSoftmax, LogSoftmax_SingleDevice_NVIDIA_F32) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeInput = {2, 3, 4};
     int dim = 1;
@@ -334,7 +334,7 @@ TEST(LogSoftmax, LogSoftmax_SingleDevice_NVIDIA_F32) {
 TEST(LogSoftmax, LogSoftmax_SingleDevice_NVIDIA_F16) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeInput = {2, 3, 4};
     int dim = 1;
@@ -385,7 +385,7 @@ TEST(LogSoftmax, LogSoftmax_SingleDevice_NVIDIA_F16) {
 TEST(LogSoftmax, LogSoftmax_SingleDevice_NVIDIA_F32_Dim2) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 4);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeInput = {4, 5};  // 2D input
     int dim = 1;  // Apply log_softmax along dimension 1

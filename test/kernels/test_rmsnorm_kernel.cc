@@ -8,7 +8,7 @@ namespace infini {
 // Single device test parameters
 template <typename T> struct TestParams {
     infiniDevice_t device = INFINI_DEVICE_NVIDIA;
-    int deviceId = 0;
+    int deviceId = 5;
     Shape shapeInput;
     Shape shapeWeight;
     DataType dataType = DataType(INFINI_DTYPE_F32);
@@ -96,7 +96,7 @@ using DataGeneratorFunc = std::function<std::vector<T>(size_t, T, T)>;
 template <typename T>
 void runGpuTest(
     const Shape &shapeInput, const Shape &shapeWeight, float eps,
-    const DataType &dataType, int deviceId = 0,
+    const DataType &dataType,
     DataGeneratorFunc<T> dataGenerator = generateRandomData<T>,
     bool print = false) {
 
@@ -118,7 +118,7 @@ void runGpuTest(
 
     // GPU parameters
     gpuParams.device = INFINI_DEVICE_NVIDIA;
-    gpuParams.deviceId = deviceId;
+    gpuParams.deviceId = 5;
     gpuParams.shapeInput = shapeInput;
     gpuParams.shapeWeight = shapeWeight;
     gpuParams.dataType = dataType;
@@ -180,7 +180,7 @@ TEST(RmsNorm, RmsNorm_GPU_F16) {
     Shape shapeInput = {2, 3, 4};  // 3D input
     Shape shapeWeight = {4};  // last dim
     runGpuTest<uint16_t>(shapeInput, shapeWeight, 1e-5f, DataType(INFINI_DTYPE_F16),
-                         0, generateSequentialData<uint16_t>, true);
+        generateSequentialData<uint16_t>, true);
 #else
     std::cout << "CUDA not enabled, skipping test" << std::endl;
 #endif
@@ -191,7 +191,7 @@ TEST(RmsNorm, RmsNorm_GPU_F16) {
 TEST(RmsNorm, RmsNorm_SingleDevice_NVIDIA_F32) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeInput = {2, 3, 4};
     Shape shapeWeight = {4};
@@ -255,7 +255,7 @@ TEST(RmsNorm, RmsNorm_SingleDevice_NVIDIA_F32) {
 TEST(RmsNorm, RmsNorm_SingleDevice_NVIDIA_F16) {
     RuntimeObj::init();
     Runtime &runtime = RuntimeObj::getInstance();
-    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 0);
+    runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
     Shape shapeInput = {2, 3, 4};
     Shape shapeWeight = {4};

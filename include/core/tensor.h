@@ -51,8 +51,8 @@ class TensorObj : public Object {
     Operator getSource() const;
     string toString() const override;
     // ============= TensorObj Data Operations==============
-    void setData(void *data_);
-    void reset(const Runtime &runtime);
+    void setData(void *data_, bool user_managed = true);
+    void reset();
     void dataMalloc(const Runtime &runtime);
 
     template <typename T> T getRawDataPtr() const {
