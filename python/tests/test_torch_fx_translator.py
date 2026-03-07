@@ -490,6 +490,180 @@ def test_rms_norm(runtime, torch_rng_seed, device_type):
     assert outputs[0].shape == (3, 10, hidden_size)
     print("✅ RmsNorm test passed!")
 
+def test_relu(runtime, torch_rng_seed):
+    """Test torch.nn.functional.relu with dynamic shapes"""
+    print(f"Testing with runtime on device: {runtime}")
+    print(f"Random seed: {torch_rng_seed}")
+
+    class ReLUModel(torch.nn.Module):
+        def forward(self, x):
+            return torch.nn.functional.relu(x)
+
+    model = ReLUModel()
+    input_info = [((4, 5, 16), "float32")]
+    input_tensors = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info
+    ]
+
+    translator = TorchFXTranslator(runtime)
+    translator.import_from_fx(model, input_tensors)
+
+    input_info_1 = [((3, 10, 16), "float32")]
+    input_tensors_1 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_1
+    ]
+    translator.run(input_tensors_1)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (3, 10, 16)
+    print("✅ ReLU test passed!")
+
+def test_sigmoid(runtime, torch_rng_seed):
+    """Test torch.nn.functional.sigmoid with dynamic shapes"""
+    print(f"Testing with runtime on device: {runtime}")
+    print(f"Random seed: {torch_rng_seed}")
+
+    class SigmoidModel(torch.nn.Module):
+        def forward(self, x):
+            return torch.nn.functional.sigmoid(x)
+
+    model = SigmoidModel()
+    input_info = [((4, 5, 16), "float32")]
+    input_tensors = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info
+    ]
+
+    translator = TorchFXTranslator(runtime)
+    translator.import_from_fx(model, input_tensors)
+
+    input_info_1 = [((3, 10, 16), "float32")]
+    input_tensors_1 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_1
+    ]
+    translator.run(input_tensors_1)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (3, 10, 16)
+    print("✅ Sigmoid test passed!")
+
+def test_silu(runtime, torch_rng_seed):
+    """Test torch.nn.functional.silu with dynamic shapes"""
+    print(f"Testing with runtime on device: {runtime}")
+    print(f"Random seed: {torch_rng_seed}")
+
+    class SiLUModel(torch.nn.Module):
+        def forward(self, x):
+            return torch.nn.functional.silu(x)
+
+    model = SiLUModel()
+    input_info = [((4, 5, 16), "float32")]
+    input_tensors = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info
+    ]
+
+    translator = TorchFXTranslator(runtime)
+    translator.import_from_fx(model, input_tensors)
+
+    input_info_1 = [((3, 10, 16), "float32")]
+    input_tensors_1 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_1
+    ]
+    translator.run(input_tensors_1)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (3, 10, 16)
+    print("✅ SiLU test passed!")
+
+def test_gelu(runtime, torch_rng_seed):
+    """Test torch.nn.functional.gelu with dynamic shapes"""
+    print(f"Testing with runtime on device: {runtime}")
+    print(f"Random seed: {torch_rng_seed}")
+
+    class GELUModel(torch.nn.Module):
+        def forward(self, x):
+            return torch.nn.functional.gelu(x)
+
+    model = GELUModel()
+    input_info = [((4, 5, 16), "float32")]
+    input_tensors = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info
+    ]
+
+    translator = TorchFXTranslator(runtime)
+    translator.import_from_fx(model, input_tensors)
+
+    input_info_1 = [((3, 10, 16), "float32")]
+    input_tensors_1 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_1
+    ]
+    translator.run(input_tensors_1)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (3, 10, 16)
+    print("✅ GELU test passed!")
+
+def test_softplus(runtime, torch_rng_seed):
+    """Test torch.nn.functional.softplus with dynamic shapes"""
+    print(f"Testing with runtime on device: {runtime}")
+    print(f"Random seed: {torch_rng_seed}")
+
+    class SoftplusModel(torch.nn.Module):
+        def forward(self, x):
+            return torch.nn.functional.softplus(x)
+
+    model = SoftplusModel()
+    input_info = [((4, 5, 16), "float32")]
+    input_tensors = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info
+    ]
+
+    translator = TorchFXTranslator(runtime)
+    translator.import_from_fx(model, input_tensors)
+
+    input_info_1 = [((3, 10, 16), "float32")]
+    input_tensors_1 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_1
+    ]
+    translator.run(input_tensors_1)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (3, 10, 16)
+    print("✅ Softplus test passed!")
+
+def test_tanh(runtime, torch_rng_seed):
+    """Test torch.nn.functional.tanh with dynamic shapes"""
+    print(f"Testing with runtime on device: {runtime}")
+    print(f"Random seed: {torch_rng_seed}")
+
+    class TanhModel(torch.nn.Module):
+        def forward(self, x):
+            return torch.nn.functional.tanh(x)
+
+    model = TanhModel()
+    input_info = [((4, 5, 16), "float32")]
+    input_tensors = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info
+    ]
+
+    translator = TorchFXTranslator(runtime)
+    translator.import_from_fx(model, input_tensors)
+
+    input_info_1 = [((3, 10, 16), "float32")]
+    input_tensors_1 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_1
+    ]
+    translator.run(input_tensors_1)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (3, 10, 16)
+    print("✅ Tanh test passed!")
+
 if __name__ == "__main__":
     # Can run this file directly
     import sys

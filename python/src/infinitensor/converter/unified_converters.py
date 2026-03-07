@@ -136,3 +136,34 @@ def convert_rms_norm(translator, node):
         eps = node.args[3]
     translator.tensors[node] = translator.builder.rms_norm(x, weight, eps)
 
+# Unary operations
+@registry.register("relu", "default")
+def convert_relu(translator, node):
+    x = translator.tensors[node.args[0]]
+    translator.tensors[node] = translator.builder.relu(x)
+
+@registry.register("sigmoid", "default")
+def convert_sigmoid(translator, node):
+    x = translator.tensors[node.args[0]]
+    translator.tensors[node] = translator.builder.sigmoid(x)
+
+@registry.register("silu", "default")
+def convert_silu(translator, node):
+    x = translator.tensors[node.args[0]]
+    translator.tensors[node] = translator.builder.silu(x)
+
+@registry.register("gelu", "default")
+def convert_gelu(translator, node):
+    x = translator.tensors[node.args[0]]
+    translator.tensors[node] = translator.builder.gelu(x)
+
+@registry.register("softplus", "default")
+def convert_softplus(translator, node):
+    x = translator.tensors[node.args[0]]
+    translator.tensors[node] = translator.builder.softplus(x)
+
+@registry.register("tanh", "default")
+def convert_tanh(translator, node):
+    x = translator.tensors[node.args[0]]
+    translator.tensors[node] = translator.builder.tanh(x)
+

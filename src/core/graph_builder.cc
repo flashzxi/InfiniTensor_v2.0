@@ -1,5 +1,7 @@
 #include "core/graph_builder.h"
 
+#include "operators/UnaryOp.h"
+
 namespace infini {
 
 GraphBuilderObj::GraphBuilderObj(Runtime runtime)
@@ -126,6 +128,24 @@ Tensor GraphBuilderObj::rms_norm(Tensor x, Tensor weight, float eps, std::option
 DEFINE_BINARY_OP(add, OpType::Add);
 DEFINE_BINARY_OP(sub, OpType::Sub);
 DEFINE_BINARY_OP(mul, OpType::Mul);
+
+#define DEFINE_UNARY_OP(OP, TYPE)                                              \
+Tensor GraphBuilderObj::OP(Tensor X, std::optional<Tensor> Y) {                \
+    if (Y.has_value()) {                                                       \
+        g->addOpWithOutputs<UnaryWiseObj>(TYPE, std::move(X),                    \
+                std::move(Y.value()));                                         \
+        return Y.value();                                                      \
+    } else {                                                                   \
+        return g->addOp<UnaryWiseObj>(TYPE, std::move(X), nullptr)->getOutput(0);\
+    }                                                                          \
+}
+
+DEFINE_UNARY_OP(relu, OpType::Relu)
+DEFINE_UNARY_OP(sigmoid, OpType::Sigmoid)
+DEFINE_UNARY_OP(silu, OpType::Silu)
+DEFINE_UNARY_OP(gelu, OpType::Gelu)
+DEFINE_UNARY_OP(softplus, OpType::Softplus)
+DEFINE_UNARY_OP(tanh, OpType::Tanh)
 
 string GraphBuilderObj::printGraph() const { return g->toString(); }
 

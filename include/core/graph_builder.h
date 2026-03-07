@@ -42,6 +42,13 @@ class GraphBuilderObj {
     Tensor softmax(Tensor x, int axis, std::optional<Tensor> Y = std::nullopt);
     Tensor lp_norm(Tensor x, int axis, int p, float eps, std::optional<Tensor> Y = std::nullopt);
     Tensor rms_norm(Tensor x, Tensor weight, float eps, std::optional<Tensor> Y = std::nullopt);
+
+    Tensor relu(Tensor A, std::optional<Tensor> Y = std::nullopt);
+    Tensor sigmoid(Tensor A, std::optional<Tensor> Y = std::nullopt);
+    Tensor silu(Tensor A, std::optional<Tensor> Y = std::nullopt);
+    Tensor gelu(Tensor A, std::optional<Tensor> Y = std::nullopt);
+    Tensor softplus(Tensor A, std::optional<Tensor> Y = std::nullopt);
+    Tensor tanh(Tensor A, std::optional<Tensor> Y = std::nullopt);
     string printGraph() const;
 
     Graph getGraph() const;

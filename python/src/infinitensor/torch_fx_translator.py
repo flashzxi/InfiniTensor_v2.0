@@ -305,7 +305,6 @@ class TorchFXTranslator:
         for node, tensor in zip(fake_inputs.keys(), inputs):
             self.nodes_map[node] = tensor
             self.tensors[node] = tensor
-        print(self.module.graph_module.graph)
 
         # Process FX graph nodes
         for node in self.module.graph_module.graph.nodes:

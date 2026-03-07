@@ -26,6 +26,11 @@ struct OpType {
         Softmax,
         LpNorm,
         RmsNorm,
+        Sigmoid,
+        Silu,
+        Gelu,
+        Softplus,
+        Tanh
 
     } type;
 
@@ -59,6 +64,11 @@ struct OpType {
             CASE(Softmax);
             CASE(LpNorm);
             CASE(RmsNorm);
+            CASE(Sigmoid);
+            CASE(Silu);
+            CASE(Gelu);
+            CASE(Softplus);
+            CASE(Tanh);
 
         default:
             return "Unknown";
