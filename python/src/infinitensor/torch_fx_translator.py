@@ -8,6 +8,7 @@ from pyinfinitensor import (
     ShapeExpr,
     StrideExpr,
 )
+import re
 import torch
 from torch import fx
 from torch.export import export, Dim, ExportedProgram

@@ -451,6 +451,45 @@ def test_normalize(runtime, torch_rng_seed, device_type):
     assert outputs[0].shape == (15, 12)
     print("✅ Normalize L2 test passed!")
 
+def test_rms_norm(runtime, torch_rng_seed, device_type):
+    """Test torch.nn.functional.rms_norm with dynamic shapes"""
+
+    print(f"Testing with runtime on device: {runtime}")
+    print(f"Random seed: {torch_rng_seed}")
+
+    # Create simple model - RMS normalization
+    class RmsNormModel(torch.nn.Module):
+        def __init__(self, hidden_size):
+            super().__init__()
+            self.weight = torch.nn.Parameter(torch.ones(hidden_size))
+
+        def forward(self, x):
+            return torch.nn.functional.rms_norm(x, (self.weight.shape[0],), self.weight, 1e-5)
+
+    hidden_size = 16
+    model = RmsNormModel(hidden_size)
+    # Randomly initialize inputs
+    input_info = [((4, 5, hidden_size), "float32")]
+    input_tensors = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info
+    ]
+
+    # Create translator
+    translator = TorchFXTranslator(runtime)
+    translator.import_from_fx(model, input_tensors)
+
+    # First run with different shape
+    input_info_1 = [((3, 10, hidden_size), "float32")]
+    input_tensors_1 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_1
+    ]
+    translator.run(input_tensors_1)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (3, 10, hidden_size)
+    print("✅ RmsNorm test passed!")
+
 if __name__ == "__main__":
     # Can run this file directly
     import sys

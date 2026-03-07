@@ -100,6 +100,15 @@ Tensor GraphBuilderObj::lp_norm(Tensor x, int axis, int p, float eps, std::optio
     }
 }
 
+Tensor GraphBuilderObj::rms_norm(Tensor x, Tensor weight, float eps, std::optional<Tensor> Y) {
+    if (Y.has_value()) {
+        g->addOpWithOutputs<RmsNormObj>(std::move(x), std::move(weight), eps, std::move(Y.value()));
+        return Y.value();
+    } else {
+        return g->addOp<RmsNormObj>(std::move(x), std::move(weight), eps, nullptr)->getOutput(0);
+    }
+}
+
 #define DEFINE_BINARY_OP(OP, TYPE)                                             \
     Tensor GraphBuilderObj::OP(Tensor A, Tensor B, std::optional<Tensor> Y) {  \
         if (Y.has_value()) {                                                   \

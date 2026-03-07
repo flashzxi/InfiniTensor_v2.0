@@ -125,3 +125,14 @@ def convert_normalize(translator, node):
     # if len(node.args) >= 4:
     #     eps = node.args[3]
     translator.tensors[node] = translator.builder.lp_norm(x, dim, int(p))
+
+@registry.register("rms_norm", "default")
+def convert_rms_norm(translator, node):
+    x = translator.tensors[node.args[0]]
+    normalized_shape = node.args[1]
+    weight = translator.tensors[node.args[2]]
+    eps = 1e-5
+    if len(node.args) >= 4:
+        eps = node.args[3]
+    translator.tensors[node] = translator.builder.rms_norm(x, weight, eps)
+
