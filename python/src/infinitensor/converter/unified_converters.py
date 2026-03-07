@@ -106,3 +106,9 @@ def convert_log_softmax(translator, node):
     x = translator.tensors[node.args[0]]
     dim = node.args[1]
     translator.tensors[node] = translator.builder.log_softmax(x, dim)
+
+@registry.register("softmax", "int")
+def convert_softmax(translator, node):
+    x = translator.tensors[node.args[0]]
+    axis = node.args[1]
+    translator.tensors[node] = translator.builder.softmax(x, axis)

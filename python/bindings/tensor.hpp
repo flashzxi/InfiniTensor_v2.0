@@ -93,6 +93,7 @@ void bind_tensor(py::module &m) {
              })
         .def("set_data",
              [](TensorObj &self, uintptr_t ptr, Runtime &runtime) {
+                 self.reset(runtime);
                  self.setData(reinterpret_cast<void *>(ptr));
                  if (!runtime->isCpu()) {
                      self.copyToDevice(runtime);

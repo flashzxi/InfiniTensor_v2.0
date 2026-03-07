@@ -22,7 +22,6 @@ class TensorObj : public Object {
     vector<WRef<OperatorObj>> targets;
     WRef<OperatorObj> source;
     infiniDevice_t device = INFINI_DEVICE_CPU;
-    size_t allocated_size_ = 0; // Track allocated memory size for dynamic shapes
 
   public:
     TensorObj(ShapeExpr symbolic_shape, DataType dtype);
@@ -49,10 +48,10 @@ class TensorObj : public Object {
     ElementType getRank() const;
     OpVec getTargets() const;
     Operator getSource() const;
-
     string toString() const override;
     // ============= TensorObj Data Operations==============
     void setData(void *data_);
+    void reset(const Runtime &runtime);
     void dataMalloc(const Runtime &runtime);
 
     template <typename T> T getRawDataPtr() const {

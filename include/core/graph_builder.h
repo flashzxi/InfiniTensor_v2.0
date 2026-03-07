@@ -10,6 +10,7 @@
 #include "operators/Conv.h"
 #include "operators/LayerNorm.h"
 #include "operators/LogSoftmax.h"
+#include "operators/Softmax.h"
 
 namespace infini {
 
@@ -36,6 +37,7 @@ class GraphBuilderObj {
     Tensor layer_norm(Tensor x, Tensor weight, Tensor bias, float eps,
         std::optional<Tensor> Y, std::optional<Tensor> Norm, std::optional<Tensor> Std);
     Tensor log_softmax(Tensor x, int dim, std::optional<Tensor> Y = std::nullopt);
+    Tensor softmax(Tensor x, int axis, std::optional<Tensor> Y = std::nullopt);
     string printGraph() const;
 
     Graph getGraph() const;

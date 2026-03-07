@@ -23,6 +23,7 @@ struct OpType {
         Transpose,
         LayerNorm,
         LogSoftmax,
+        Softmax,
 
     } type;
 
@@ -53,6 +54,7 @@ struct OpType {
             CASE(MatMul);
             CASE(LayerNorm);
             CASE(LogSoftmax);
+            CASE(Softmax);
 
         default:
             return "Unknown";

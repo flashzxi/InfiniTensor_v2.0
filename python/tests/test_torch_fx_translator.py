@@ -367,6 +367,54 @@ def test_log_softmax(runtime, torch_rng_seed):
     print("✅ LogSoftmax test passed!")
 
 
+def test_softmax(runtime, torch_rng_seed, device_type):
+    """Test torch.softmax with dynamic shapes"""
+    # 底层 infiniCore 不支持 CPU，跳过测试
+    if device_type == DeviceType.CPU:
+        pytest.skip("Softmax is not supported on CPU backend")
+
+    print(f"Testing with runtime on device: {runtime}")
+    print(f"Random seed: {torch_rng_seed}")
+
+    # Create simple model
+    class SoftmaxModel(torch.nn.Module):
+        def forward(self, x):
+            return torch.softmax(x, dim=-1)
+
+    model = SoftmaxModel()
+    # Randomly initialize inputs
+    input_info = [((5, 4), "float32")]
+    input_tensors = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info
+    ]
+
+    # Create translator
+    translator = TorchFXTranslator(runtime)
+    translator.import_from_fx(model, input_tensors)
+
+    # First run with different shape
+    input_info_1 = [((15, 12), "float32")]
+    input_tensors_1 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_1
+    ]
+    translator.run(input_tensors_1)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (15, 12)
+
+    # Second run with another shape
+    input_info_2 = [((3, 20), "float32")]
+    input_tensors_2 = [
+        torch.as_tensor(np.random.randn(*shape).astype(dtype))
+        for shape, dtype in input_info_2
+    ]
+    translator.run(input_tensors_2)
+    outputs = translator.get_outputs()
+    assert outputs[0].shape == (3, 20)
+    print("✅ Softmax test passed!")
+
+
 if __name__ == "__main__":
     # Can run this file directly
     import sys

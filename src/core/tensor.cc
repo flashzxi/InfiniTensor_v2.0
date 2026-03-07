@@ -71,23 +71,32 @@ Blob TensorObj::getData() const { return data; }
 
 void TensorObj::setData(void *data_) {
     IT_ASSERT(data_ != nullptr);
+    // IT_ASSERT(data == nullptr); // 可以防止内存泄露
     data = std::make_shared<BlobObj>(data_);
-    // Mark as externally managed data (size info not tracked)
-    allocated_size_ = SIZE_MAX;
+}
+
+void TensorObj::reset(const Runtime &runtime) {
+    if (data != nullptr) {
+        if (device == INFINI_DEVICE_CPU) {
+            runtime->deallocHost(data->getPtr<void *>());
+        } else {
+            runtime->deallocDevice(data->getPtr<void *>());
+        }
+    }
+    device = INFINI_DEVICE_CPU;
 }
 
 void TensorObj::dataMalloc(const Runtime &runtime) {
     size_t required_size = getTotalBytes();
-
-    // Skip if data is externally managed (set via setData)
-    if (allocated_size_ == SIZE_MAX) {
-        return;
+    if (data != nullptr) {
+        if (device == INFINI_DEVICE_CPU) {
+            runtime->deallocHost(data->getPtr<void *>());
+        } else {
+            runtime->deallocDevice(data->getPtr<void *>());
+        }
+        data = nullptr;
     }
-
-    if (data == nullptr || allocated_size_ < required_size) {
-        data = make_ref<BlobObj>(runtime->allocDevice(required_size));
-        allocated_size_ = required_size;
-    }
+    data = make_ref<BlobObj>(runtime->allocDevice(required_size));
     device = runtime->getCurrentThreadContext()->device;
 }
 
