@@ -5,11 +5,12 @@
 
 namespace infini {
 class LpNormObj : public OperatorObj {
-private:
+  private:
     int axis;
     int p;
     float eps;
-public:
+
+  public:
     /**
      * @brief Construct a new LpNorm object.
      * @param graph The computation graph that this operator belongs to.

@@ -15,7 +15,7 @@ template <typename T> struct ThreadTestParams {
     std::vector<T> outputData;
     bool completed = false;
     std::string deviceName;
-    int dim = 1;  // default dim for log_softmax
+    int dim = 1; // default dim for log_softmax
 };
 
 // Device thread function
@@ -39,8 +39,8 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
     // For GPU, manually copy input data from CPU to GPU device memory
     if (params.device != INFINI_DEVICE_CPU) {
         deviceInput = runtime->allocDevice(input->getTotalBytes());
-        runtime->memcpy(deviceInput, params.inputData.data(), input->getTotalBytes(),
-                        INFINIRT_MEMCPY_H2D);
+        runtime->memcpy(deviceInput, params.inputData.data(),
+                        input->getTotalBytes(), INFINIRT_MEMCPY_H2D);
         input->setData(deviceInput);
     }
 
@@ -64,18 +64,22 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
     }
     void *devicePtr = dataBlob->getRawDataPtr();
     if (!devicePtr && !runtime->isCpu()) {
-        throw std::runtime_error("Output device pointer is null on GPU device!");
+        throw std::runtime_error(
+            "Output device pointer is null on GPU device!");
     }
 
     // Copy result data
     if (runtime->isCpu()) {
         // For CPU, data is already in host memory
-        copyAndConvertData(params.outputData, devicePtr, numElements, params.dataType);
+        copyAndConvertData(params.outputData, devicePtr, numElements,
+                           params.dataType);
     } else {
         // For GPU, need to copy from device to host
         void *hostPtr = runtime->allocHost(output->getTotalBytes());
-        runtime->memcpy(hostPtr, devicePtr, output->getTotalBytes(), INFINIRT_MEMCPY_D2H);
-        copyAndConvertData(params.outputData, hostPtr, numElements, params.dataType);
+        runtime->memcpy(hostPtr, devicePtr, output->getTotalBytes(),
+                        INFINIRT_MEMCPY_D2H);
+        copyAndConvertData(params.outputData, hostPtr, numElements,
+                           params.dataType);
         runtime->deallocHost(hostPtr);
     }
 
@@ -102,8 +106,7 @@ using DataGeneratorFunc = std::function<std::vector<T>(size_t, T, T)>;
 // Run multi-thread test
 template <typename T>
 void runMultiThreadTest(
-    const Shape &shapeInput, int dim,
-    const DataType &dataType,
+    const Shape &shapeInput, int dim, const DataType &dataType,
     DataGeneratorFunc<T> dataGenerator = generateRandomData<T>,
     bool print = false) {
 
@@ -113,7 +116,8 @@ void runMultiThreadTest(
         elementInput *= d;
 
     // Use the passed data generator function (default uses random data)
-    auto inputData = dataGenerator(elementInput, static_cast<T>(-5), static_cast<T>(5));
+    auto inputData =
+        dataGenerator(elementInput, static_cast<T>(-5), static_cast<T>(5));
 
     // Create thread parameters
     ThreadTestParams<T> cpuParams, gpuParams;
@@ -142,8 +146,10 @@ void runMultiThreadTest(
         std::cout << "DataType: " << dataType.toString() << std::endl;
         std::cout << "Shape Input: " << vecToString(shapeInput) << std::endl;
         std::cout << "Dim: " << dim << std::endl;
-        std::cout << "Thread 1: CPU (" << dataType.toString() << ")" << std::endl;
-        std::cout << "Thread 2: NVIDIA (" << dataType.toString() << ")" << std::endl;
+        std::cout << "Thread 1: CPU (" << dataType.toString() << ")"
+                  << std::endl;
+        std::cout << "Thread 2: NVIDIA (" << dataType.toString() << ")"
+                  << std::endl;
         std::cout << "========================================" << std::endl;
     }
 
@@ -195,7 +201,8 @@ void runMultiThreadTest(
 
     if (print) {
         std::cout << "Result Comparison:" << std::endl;
-        std::cout << "  Total elements: " << cpuParams.outputData.size() << std::endl;
+        std::cout << "  Total elements: " << cpuParams.outputData.size()
+                  << std::endl;
         std::cout << "  Errors: " << numErrors << std::endl;
         std::cout << "  Max error: " << maxError << std::endl;
 
@@ -207,13 +214,14 @@ void runMultiThreadTest(
         std::cout << "========================================" << std::endl;
     }
 
-    EXPECT_EQ(numErrors, 0) << "Results mismatch between CPU and NVIDIA (max error: "
-                              << maxError << ")";
+    EXPECT_EQ(numErrors, 0)
+        << "Results mismatch between CPU and NVIDIA (max error: " << maxError
+        << ")";
 }
 
 // Basic LogSoftmax operation test - F32 with dim=1
 TEST(LogSoftmax, LogSoftmax_MultiThread_F32_Dim1) {
-    Shape shapeInput = {2, 3, 4};  // 3D input
+    Shape shapeInput = {2, 3, 4}; // 3D input
 
 #ifdef USE_CUDA
     runMultiThreadTest<float>(shapeInput, 1, DataType(INFINI_DTYPE_F32));
@@ -224,7 +232,7 @@ TEST(LogSoftmax, LogSoftmax_MultiThread_F32_Dim1) {
 
 // LogSoftmax operation test with dim=0
 TEST(LogSoftmax, LogSoftmax_MultiThread_F32_Dim0) {
-    Shape shapeInput = {3, 4, 5};  // 3D input
+    Shape shapeInput = {3, 4, 5}; // 3D input
 
 #ifdef USE_CUDA
     runMultiThreadTest<float>(shapeInput, 0, DataType(INFINI_DTYPE_F32));
@@ -235,7 +243,7 @@ TEST(LogSoftmax, LogSoftmax_MultiThread_F32_Dim0) {
 
 // Basic LogSoftmax operation test - F16 with dim=1
 TEST(LogSoftmax, LogSoftmax_MultiThread_F16_Dim1) {
-    Shape shapeInput = {2, 3, 4};  // 3D input
+    Shape shapeInput = {2, 3, 4}; // 3D input
 
 #ifdef USE_CUDA
     runMultiThreadTest<uint16_t>(shapeInput, 1, DataType(INFINI_DTYPE_F16),
@@ -387,8 +395,8 @@ TEST(LogSoftmax, LogSoftmax_SingleDevice_NVIDIA_F32_Dim2) {
     Runtime &runtime = RuntimeObj::getInstance();
     runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
-    Shape shapeInput = {4, 5};  // 2D input
-    int dim = 1;  // Apply log_softmax along dimension 1
+    Shape shapeInput = {4, 5}; // 2D input
+    int dim = 1;               // Apply log_softmax along dimension 1
 
     Graph g = make_ref<GraphObj>(runtime);
     auto input = g->addTensor(shapeInput, DataType(INFINI_DTYPE_F32));

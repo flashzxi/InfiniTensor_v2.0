@@ -5,9 +5,10 @@
 
 namespace infini {
 class SoftmaxObj : public OperatorObj {
-private:
+  private:
     int axis;
-public:
+
+  public:
     /**
      * @brief Construct a new Softmax object.
      * @param graph The computation graph that this operator belongs to.

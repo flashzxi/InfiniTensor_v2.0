@@ -11,7 +11,7 @@ LogSoftmaxObj::LogSoftmaxObj(GraphObj *graph, Tensor x, int dim, Tensor Y)
 string LogSoftmaxObj::toString() const {
     std::ostringstream os;
     os << "LogSoftmax( x=" << inputs[0]->getGuid()
-        << ", Y=" << outputs[0]->getGuid() << " )";
+       << ", Y=" << outputs[0]->getGuid() << " )";
     return os.str();
 }
 
@@ -59,7 +59,8 @@ void LogSoftmaxObj::createOpDesc() {
     CHECK_INFINI_ERROR(infiniopCreateHandle(&handle));
     // create LogSoftmax op descriptor
     CHECK_INFINI_ERROR(infiniopCreateLogSoftmaxDescriptor(
-        handle, (infiniopLogSoftmaxDescriptor_t *)&infiniOpDesc, yTensor, xTensor));
+        handle, (infiniopLogSoftmaxDescriptor_t *)&infiniOpDesc, yTensor,
+        xTensor));
 
     CHECK_INFINI_ERROR(infiniopDestroyTensorDescriptor(yTensor));
     CHECK_INFINI_ERROR(infiniopDestroyTensorDescriptor(xTensor));

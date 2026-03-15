@@ -115,7 +115,9 @@ class TorchFXTranslator:
         if not hasattr(st, "node") or len(st.node.expr.args) == 0:
             sym_str = str(st)
             assert str(sym_str).isdigit() or self.symbols.get(sym_str)
-            return sym_str if str(sym_str).isdigit() else self.symbols.get(sym_str)["var"]
+            return (
+                sym_str if str(sym_str).isdigit() else self.symbols.get(sym_str)["var"]
+            )
         else:
             if st.node.expr.is_Mul:
                 return f"({self._st_expr_to_str(st.node.expr.args[0])}*{self._st_expr_to_str(st.node.expr.args[1])})"

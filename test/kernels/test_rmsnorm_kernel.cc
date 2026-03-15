@@ -42,13 +42,13 @@ template <typename T> void deviceTestFunc(TestParams<T> &params) {
 
     // Manually copy input data from CPU to GPU device memory
     void *deviceInput = runtime->allocDevice(input->getTotalBytes());
-    runtime->memcpy(deviceInput, params.inputData.data(), input->getTotalBytes(),
-                    INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceInput, params.inputData.data(),
+                    input->getTotalBytes(), INFINIRT_MEMCPY_H2D);
     input->setData(deviceInput);
 
     void *deviceWeight = runtime->allocDevice(weight->getTotalBytes());
-    runtime->memcpy(deviceWeight, params.weightData.data(), weight->getTotalBytes(),
-                    INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceWeight, params.weightData.data(),
+                    weight->getTotalBytes(), INFINIRT_MEMCPY_H2D);
     weight->setData(deviceWeight);
 
     // Run computation
@@ -69,13 +69,16 @@ template <typename T> void deviceTestFunc(TestParams<T> &params) {
     }
     void *devicePtr = dataBlob->getRawDataPtr();
     if (!devicePtr) {
-        throw std::runtime_error("Output device pointer is null on GPU device!");
+        throw std::runtime_error(
+            "Output device pointer is null on GPU device!");
     }
 
     // Copy result data from device to host
     void *hostPtr = runtime->allocHost(output->getTotalBytes());
-    runtime->memcpy(hostPtr, devicePtr, output->getTotalBytes(), INFINIRT_MEMCPY_D2H);
-    copyAndConvertData(params.outputData, hostPtr, numElements, params.dataType);
+    runtime->memcpy(hostPtr, devicePtr, output->getTotalBytes(),
+                    INFINIRT_MEMCPY_D2H);
+    copyAndConvertData(params.outputData, hostPtr, numElements,
+                       params.dataType);
     runtime->deallocHost(hostPtr);
 
     // Clean up device memory
@@ -83,7 +86,8 @@ template <typename T> void deviceTestFunc(TestParams<T> &params) {
     runtime->deallocDevice(deviceWeight);
     runtime->deallocDevice(devicePtr);
     // Note: Do NOT clean up workspace here, as it will break subsequent tests
-    // The workspace is initialized once per thread context and reused across tests
+    // The workspace is initialized once per thread context and reused across
+    // tests
 
     params.completed = true;
 }
@@ -94,11 +98,10 @@ using DataGeneratorFunc = std::function<std::vector<T>(size_t, T, T)>;
 
 // Run single GPU test
 template <typename T>
-void runGpuTest(
-    const Shape &shapeInput, const Shape &shapeWeight, float eps,
-    const DataType &dataType,
-    DataGeneratorFunc<T> dataGenerator = generateRandomData<T>,
-    bool print = false) {
+void runGpuTest(const Shape &shapeInput, const Shape &shapeWeight, float eps,
+                const DataType &dataType,
+                DataGeneratorFunc<T> dataGenerator = generateRandomData<T>,
+                bool print = false) {
 
     // Prepare input data
     size_t elementInput = 1;
@@ -110,8 +113,10 @@ void runGpuTest(
         elementWeight *= d;
 
     // Use the passed data generator function (default uses random data)
-    auto inputData = dataGenerator(elementInput, static_cast<T>(-5), static_cast<T>(5));
-    auto weightData = dataGenerator(elementWeight, static_cast<T>(-1), static_cast<T>(1));
+    auto inputData =
+        dataGenerator(elementInput, static_cast<T>(-5), static_cast<T>(5));
+    auto weightData =
+        dataGenerator(elementWeight, static_cast<T>(-1), static_cast<T>(1));
 
     // Create test parameters
     TestParams<T> gpuParams;
@@ -142,11 +147,13 @@ void runGpuTest(
 
     // Verify results
     ASSERT_TRUE(gpuParams.completed) << "GPU test failed";
-    ASSERT_EQ(gpuParams.outputData.size(), elementInput) << "Output size mismatch";
+    ASSERT_EQ(gpuParams.outputData.size(), elementInput)
+        << "Output size mismatch";
 
     if (print) {
         std::cout << "Result:" << std::endl;
-        std::cout << "  Total elements: " << gpuParams.outputData.size() << std::endl;
+        std::cout << "  Total elements: " << gpuParams.outputData.size()
+                  << std::endl;
         std::cout << "  Test PASSED" << std::endl;
         std::cout << "========================================" << std::endl;
     }
@@ -155,9 +162,10 @@ void runGpuTest(
 // Basic RmsNorm operation test - F32
 TEST(RmsNorm, RmsNorm_GPU_F32) {
 #ifdef USE_CUDA
-    Shape shapeInput = {2, 3, 4};  // 3D input
-    Shape shapeWeight = {4};  // last dim
-    runGpuTest<float>(shapeInput, shapeWeight, 1e-5f, DataType(INFINI_DTYPE_F32));
+    Shape shapeInput = {2, 3, 4}; // 3D input
+    Shape shapeWeight = {4};      // last dim
+    runGpuTest<float>(shapeInput, shapeWeight, 1e-5f,
+                      DataType(INFINI_DTYPE_F32));
 #else
     std::cout << "CUDA not enabled, skipping test" << std::endl;
 #endif
@@ -166,9 +174,10 @@ TEST(RmsNorm, RmsNorm_GPU_F32) {
 // RmsNorm operation test with different shape
 TEST(RmsNorm, RmsNorm_GPU_F32_Larger) {
 #ifdef USE_CUDA
-    Shape shapeInput = {4, 8, 16};  // 3D input
-    Shape shapeWeight = {16};  // last dim
-    runGpuTest<float>(shapeInput, shapeWeight, 1e-5f, DataType(INFINI_DTYPE_F32));
+    Shape shapeInput = {4, 8, 16}; // 3D input
+    Shape shapeWeight = {16};      // last dim
+    runGpuTest<float>(shapeInput, shapeWeight, 1e-5f,
+                      DataType(INFINI_DTYPE_F32));
 #else
     std::cout << "CUDA not enabled, skipping test" << std::endl;
 #endif
@@ -177,10 +186,11 @@ TEST(RmsNorm, RmsNorm_GPU_F32_Larger) {
 // Basic RmsNorm operation test - F16
 TEST(RmsNorm, RmsNorm_GPU_F16) {
 #ifdef USE_CUDA
-    Shape shapeInput = {2, 3, 4};  // 3D input
-    Shape shapeWeight = {4};  // last dim
-    runGpuTest<uint16_t>(shapeInput, shapeWeight, 1e-5f, DataType(INFINI_DTYPE_F16),
-        generateSequentialData<uint16_t>, true);
+    Shape shapeInput = {2, 3, 4}; // 3D input
+    Shape shapeWeight = {4};      // last dim
+    runGpuTest<uint16_t>(shapeInput, shapeWeight, 1e-5f,
+                         DataType(INFINI_DTYPE_F16),
+                         generateSequentialData<uint16_t>, true);
 #else
     std::cout << "CUDA not enabled, skipping test" << std::endl;
 #endif

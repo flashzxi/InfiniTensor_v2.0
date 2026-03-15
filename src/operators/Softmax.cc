@@ -10,9 +10,8 @@ SoftmaxObj::SoftmaxObj(GraphObj *graph, Tensor x, int axis, Tensor Y)
 
 string SoftmaxObj::toString() const {
     std::ostringstream os;
-    os << "Softmax( x=" << inputs[0]->getGuid()
-        << ", axis=" << axis
-        << ", Y=" << outputs[0]->getGuid() << " )";
+    os << "Softmax( x=" << inputs[0]->getGuid() << ", axis=" << axis
+       << ", Y=" << outputs[0]->getGuid() << " )";
     return os.str();
 }
 
@@ -60,7 +59,8 @@ void SoftmaxObj::createOpDesc() {
     CHECK_INFINI_ERROR(infiniopCreateHandle(&handle));
     // create Softmax op descriptor
     CHECK_INFINI_ERROR(infiniopCreateSoftmaxDescriptor(
-        handle, (infiniopSoftmaxDescriptor_t *)&infiniOpDesc, yTensor, xTensor, axis));
+        handle, (infiniopSoftmaxDescriptor_t *)&infiniOpDesc, yTensor, xTensor,
+        axis));
 
     CHECK_INFINI_ERROR(infiniopDestroyTensorDescriptor(yTensor));
     CHECK_INFINI_ERROR(infiniopDestroyTensorDescriptor(xTensor));

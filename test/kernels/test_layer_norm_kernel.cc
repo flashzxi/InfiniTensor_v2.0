@@ -40,7 +40,8 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
     if (params.shapeBias.size() > 0) {
         bias = g->addTensor(params.shapeBias, params.dataType);
     }
-    auto op = g->addOp<LayerNormObj>(x, weight, bias, params.eps, nullptr, nullptr, nullptr);
+    auto op = g->addOp<LayerNormObj>(x, weight, bias, params.eps, nullptr,
+                                     nullptr, nullptr);
 
     x->setData(params.xData.data());
     weight->setData(params.weightData.data());
@@ -60,14 +61,14 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
         deviceWeight = runtime->allocDevice(weight->getTotalBytes());
         runtime->memcpy(deviceX, params.xData.data(), x->getTotalBytes(),
                         INFINIRT_MEMCPY_H2D);
-        runtime->memcpy(deviceWeight, params.weightData.data(), weight->getTotalBytes(),
-                        INFINIRT_MEMCPY_H2D);
+        runtime->memcpy(deviceWeight, params.weightData.data(),
+                        weight->getTotalBytes(), INFINIRT_MEMCPY_H2D);
         x->setData(deviceX);
         weight->setData(deviceWeight);
         if (bias) {
             deviceBias = runtime->allocDevice(bias->getTotalBytes());
-            runtime->memcpy(deviceBias, params.biasData.data(), bias->getTotalBytes(),
-                            INFINIRT_MEMCPY_H2D);
+            runtime->memcpy(deviceBias, params.biasData.data(),
+                            bias->getTotalBytes(), INFINIRT_MEMCPY_H2D);
             bias->setData(deviceBias);
         }
     }
@@ -100,20 +101,26 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
     }
     void *yDevicePtr = yDataBlob->getRawDataPtr();
     if (!yDevicePtr && !runtime->isCpu()) {
-        throw std::runtime_error("Y output device pointer is null on GPU device!");
+        throw std::runtime_error(
+            "Y output device pointer is null on GPU device!");
     }
     if (runtime->isCpu()) {
         // For CPU, data is already in host memory
-        copyAndConvertData(params.yData, yDevicePtr, numElementsY, params.dataType);
+        copyAndConvertData(params.yData, yDevicePtr, numElementsY,
+                           params.dataType);
     } else {
         // For GPU, need to copy from device to host
         void *yHostPtr = runtime->allocHost(y->getTotalBytes());
-        runtime->memcpy(yHostPtr, yDevicePtr, y->getTotalBytes(), INFINIRT_MEMCPY_D2H);
+        runtime->memcpy(yHostPtr, yDevicePtr, y->getTotalBytes(),
+                        INFINIRT_MEMCPY_D2H);
         // Debug: check first few bytes
-        float *debugPtr = static_cast<float*>(yHostPtr);
-        std::cout << "DEBUG: First Y value after memcpy: " << debugPtr[0] << std::endl;
-        copyAndConvertData(params.yData, yHostPtr, numElementsY, params.dataType);
-        std::cout << "DEBUG: First Y value after copyAndConvertData: " << params.yData[0] << std::endl;
+        float *debugPtr = static_cast<float *>(yHostPtr);
+        std::cout << "DEBUG: First Y value after memcpy: " << debugPtr[0]
+                  << std::endl;
+        copyAndConvertData(params.yData, yHostPtr, numElementsY,
+                           params.dataType);
+        std::cout << "DEBUG: First Y value after copyAndConvertData: "
+                  << params.yData[0] << std::endl;
         runtime->deallocHost(yHostPtr);
     }
 
@@ -124,16 +131,20 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
     }
     void *normDevicePtr = normDataBlob->getRawDataPtr();
     if (!normDevicePtr && !runtime->isCpu()) {
-        throw std::runtime_error("Norm output device pointer is null on GPU device!");
+        throw std::runtime_error(
+            "Norm output device pointer is null on GPU device!");
     }
     if (runtime->isCpu()) {
         // For CPU, data is already in host memory
-        copyAndConvertData(params.normData, normDevicePtr, numElementsNorm, params.dataType);
+        copyAndConvertData(params.normData, normDevicePtr, numElementsNorm,
+                           params.dataType);
     } else {
         // For GPU, need to copy from device to host
         void *normHostPtr = runtime->allocHost(norm->getTotalBytes());
-        runtime->memcpy(normHostPtr, normDevicePtr, norm->getTotalBytes(), INFINIRT_MEMCPY_D2H);
-        copyAndConvertData(params.normData, normHostPtr, numElementsNorm, params.dataType);
+        runtime->memcpy(normHostPtr, normDevicePtr, norm->getTotalBytes(),
+                        INFINIRT_MEMCPY_D2H);
+        copyAndConvertData(params.normData, normHostPtr, numElementsNorm,
+                           params.dataType);
         runtime->deallocHost(normHostPtr);
     }
 
@@ -144,16 +155,20 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
     }
     void *stdDevicePtr = stdDataBlob->getRawDataPtr();
     if (!stdDevicePtr && !runtime->isCpu()) {
-        throw std::runtime_error("Std output device pointer is null on GPU device!");
+        throw std::runtime_error(
+            "Std output device pointer is null on GPU device!");
     }
     if (runtime->isCpu()) {
         // For CPU, data is already in host memory
-        copyAndConvertData(params.stdData, stdDevicePtr, numElementsStd, params.dataType);
+        copyAndConvertData(params.stdData, stdDevicePtr, numElementsStd,
+                           params.dataType);
     } else {
         // For GPU, need to copy from device to host
         void *stdHostPtr = runtime->allocHost(std->getTotalBytes());
-        runtime->memcpy(stdHostPtr, stdDevicePtr, std->getTotalBytes(), INFINIRT_MEMCPY_D2H);
-        copyAndConvertData(params.stdData, stdHostPtr, numElementsStd, params.dataType);
+        runtime->memcpy(stdHostPtr, stdDevicePtr, std->getTotalBytes(),
+                        INFINIRT_MEMCPY_D2H);
+        copyAndConvertData(params.stdData, stdHostPtr, numElementsStd,
+                           params.dataType);
         runtime->deallocHost(stdHostPtr);
     }
 
@@ -201,10 +216,12 @@ void runMultiThreadTest(
         elementBias *= dim;
 
     auto xData = dataGenerator(elementX, static_cast<T>(-5), static_cast<T>(5));
-    auto weightData = dataGenerator(elementWeight, static_cast<T>(0.5), static_cast<T>(1.5));
+    auto weightData =
+        dataGenerator(elementWeight, static_cast<T>(0.5), static_cast<T>(1.5));
     std::vector<T> biasData;
     if (shapeBias.size() > 0) {
-        biasData = dataGenerator(elementBias, static_cast<T>(-1), static_cast<T>(1));
+        biasData =
+            dataGenerator(elementBias, static_cast<T>(-1), static_cast<T>(1));
     }
 
     // Create thread parameters
@@ -244,8 +261,10 @@ void runMultiThreadTest(
         std::cout << "Shape Weight: " << vecToString(shapeWeight) << std::endl;
         std::cout << "Shape Bias: " << vecToString(shapeBias) << std::endl;
         std::cout << "Eps: " << eps << std::endl;
-        std::cout << "Thread 1: CPU (" << dataType.toString() << ")" << std::endl;
-        std::cout << "Thread 2: NVIDIA (" << dataType.toString() << ")" << std::endl;
+        std::cout << "Thread 1: CPU (" << dataType.toString() << ")"
+                  << std::endl;
+        std::cout << "Thread 2: NVIDIA (" << dataType.toString() << ")"
+                  << std::endl;
         std::cout << "========================================" << std::endl;
     }
 
@@ -293,7 +312,8 @@ void runMultiThreadTest(
     //     if (error > epsilon) {
     //         numErrorsY++;
     //         if (numErrorsY <= 5) {
-    //             std::cout << "Y Mismatch at index " << i << ": CPU=" << cpuVal
+    //             std::cout << "Y Mismatch at index " << i << ": CPU=" <<
+    //             cpuVal
     //                       << ", NVIDIA=" << gpuVal << ", error=" << error
     //                       << std::endl;
     //         }
@@ -321,7 +341,8 @@ void runMultiThreadTest(
     //     if (error > epsilon) {
     //         numErrorsNorm++;
     //         if (numErrorsNorm <= 5) {
-    //             std::cout << "Norm Mismatch at index " << i << ": CPU=" << cpuVal
+    //             std::cout << "Norm Mismatch at index " << i << ": CPU=" <<
+    //             cpuVal
     //                       << ", NVIDIA=" << gpuVal << ", error=" << error
     //                       << std::endl;
     //         }
@@ -349,7 +370,8 @@ void runMultiThreadTest(
     //     if (error > epsilon) {
     //         numErrorsStd++;
     //         if (numErrorsStd <= 5) {
-    //             std::cout << "Std Mismatch at index " << i << ": CPU=" << cpuVal
+    //             std::cout << "Std Mismatch at index " << i << ": CPU=" <<
+    //             cpuVal
     //                       << ", NVIDIA=" << gpuVal << ", error=" << error
     //                       << std::endl;
     //         }
@@ -358,12 +380,18 @@ void runMultiThreadTest(
 
     if (print) {
         std::cout << "Result Comparison:" << std::endl;
-        std::cout << "  Total Y elements: " << cpuParams.yData.size() << std::endl;
-        std::cout << "  Y Errors: " << numErrorsY << ", Max error: " << maxErrorY << std::endl;
-        std::cout << "  Total Norm elements: " << cpuParams.normData.size() << std::endl;
-        std::cout << "  Norm Errors: " << numErrorsNorm << ", Max error: " << maxErrorNorm << std::endl;
-        std::cout << "  Total Std elements: " << cpuParams.stdData.size() << std::endl;
-        std::cout << "  Std Errors: " << numErrorsStd << ", Max error: " << maxErrorStd << std::endl;
+        std::cout << "  Total Y elements: " << cpuParams.yData.size()
+                  << std::endl;
+        std::cout << "  Y Errors: " << numErrorsY
+                  << ", Max error: " << maxErrorY << std::endl;
+        std::cout << "  Total Norm elements: " << cpuParams.normData.size()
+                  << std::endl;
+        std::cout << "  Norm Errors: " << numErrorsNorm
+                  << ", Max error: " << maxErrorNorm << std::endl;
+        std::cout << "  Total Std elements: " << cpuParams.stdData.size()
+                  << std::endl;
+        std::cout << "  Std Errors: " << numErrorsStd
+                  << ", Max error: " << maxErrorStd << std::endl;
 
         if (numErrorsY == 0 && numErrorsNorm == 0 && numErrorsStd == 0) {
             std::cout << "  Test PASSED" << std::endl;
@@ -373,17 +401,20 @@ void runMultiThreadTest(
         std::cout << "========================================" << std::endl;
     }
 
-    EXPECT_EQ(numErrorsY, 0) << "Y results mismatch between CPU and NVIDIA (max error: "
-                              << maxErrorY << ")";
-    EXPECT_EQ(numErrorsNorm, 0) << "Norm results mismatch between CPU and NVIDIA (max error: "
-                                 << maxErrorNorm << ")";
-    EXPECT_EQ(numErrorsStd, 0) << "Std results mismatch between CPU and NVIDIA (max error: "
-                                << maxErrorStd << ")";
+    EXPECT_EQ(numErrorsY, 0)
+        << "Y results mismatch between CPU and NVIDIA (max error: " << maxErrorY
+        << ")";
+    EXPECT_EQ(numErrorsNorm, 0)
+        << "Norm results mismatch between CPU and NVIDIA (max error: "
+        << maxErrorNorm << ")";
+    EXPECT_EQ(numErrorsStd, 0)
+        << "Std results mismatch between CPU and NVIDIA (max error: "
+        << maxErrorStd << ")";
 }
 
 // Basic LayerNorm operation test - F32 with 4D input
 TEST(LayerNorm, LayerNorm_MultiThread_F32_4D) {
-    Shape shapeX = {2, 3, 4, 5};  // 4D input
+    Shape shapeX = {2, 3, 4, 5}; // 4D input
     Shape shapeWeight = {5};     // normalized_shape
     Shape shapeBias = {5};       // same as weight
 
@@ -397,9 +428,9 @@ TEST(LayerNorm, LayerNorm_MultiThread_F32_4D) {
 
 // LayerNorm operation test with 5D input - F32
 TEST(LayerNorm, LayerNorm_MultiThread_F32_5D) {
-    Shape shapeX = {2, 2, 3, 4, 5};  // 5D input
-    Shape shapeWeight = {5};          // normalized_shape
-    Shape shapeBias = {5};            // same as weight
+    Shape shapeX = {2, 2, 3, 4, 5}; // 5D input
+    Shape shapeWeight = {5};        // normalized_shape
+    Shape shapeBias = {5};          // same as weight
 
 #ifdef USE_CUDA
     runMultiThreadTest<float>(shapeX, shapeWeight, shapeBias,
@@ -411,9 +442,9 @@ TEST(LayerNorm, LayerNorm_MultiThread_F32_5D) {
 
 // LayerNorm operation test with different epsilon - F32
 TEST(LayerNorm, LayerNorm_MultiThread_F32_Eps) {
-    Shape shapeX = {2, 3, 4, 6};  // 4D input
-    Shape shapeWeight = {6};      // normalized_shape
-    Shape shapeBias = {6};        // same as weight
+    Shape shapeX = {2, 3, 4, 6}; // 4D input
+    Shape shapeWeight = {6};     // normalized_shape
+    Shape shapeBias = {6};       // same as weight
 
 #ifdef USE_CUDA
     runMultiThreadTest<float>(shapeX, shapeWeight, shapeBias,
@@ -425,9 +456,9 @@ TEST(LayerNorm, LayerNorm_MultiThread_F32_Eps) {
 
 // Basic LayerNorm operation test - F16 with 4D input
 TEST(LayerNorm, LayerNorm_MultiThread_F16_4D) {
-    Shape shapeX = {2, 3, 4, 5};  // 4D input
-    Shape shapeWeight = {5};      // normalized_shape
-    Shape shapeBias = {5};        // same as weight
+    Shape shapeX = {2, 3, 4, 5}; // 4D input
+    Shape shapeWeight = {5};     // normalized_shape
+    Shape shapeBias = {5};       // same as weight
 
 #ifdef USE_CUDA
     runMultiThreadTest<uint16_t>(shapeX, shapeWeight, shapeBias,
@@ -444,16 +475,17 @@ TEST(LayerNorm, LayerNorm_SingleDevice_CPU) {
     Runtime &runtime = RuntimeObj::getInstance();
     runtime->initThreadContext(INFINI_DEVICE_CPU, 0);
 
-    Shape shapeX = {2, 3, 4, 5};  // 4D input
-    Shape shapeWeight = {5};      // normalized_shape
-    Shape shapeBias = {5};        // same as weight
+    Shape shapeX = {2, 3, 4, 5}; // 4D input
+    Shape shapeWeight = {5};     // normalized_shape
+    Shape shapeBias = {5};       // same as weight
     float eps = 1e-5f;
 
     Graph g = make_ref<GraphObj>(runtime);
     auto x = g->addTensor(shapeX, DataType(INFINI_DTYPE_F32));
     auto weight = g->addTensor(shapeWeight, DataType(INFINI_DTYPE_F32));
     auto bias = g->addTensor(shapeBias, DataType(INFINI_DTYPE_F32));
-    auto op = g->addOp<LayerNormObj>(x, weight, bias, eps, nullptr, nullptr, nullptr);
+    auto op =
+        g->addOp<LayerNormObj>(x, weight, bias, eps, nullptr, nullptr, nullptr);
 
     runtime->dataMalloc(g);
 
@@ -466,10 +498,10 @@ TEST(LayerNorm, LayerNorm_SingleDevice_CPU) {
         xData[i] = static_cast<float>((i % 20) - 10) * 0.1f; // -1.0 to 0.9
     }
     for (size_t i = 0; i < weightData.size(); ++i) {
-        weightData[i] = 1.0f + i * 0.1f;  // 1.0, 1.1, 1.2, ...
+        weightData[i] = 1.0f + i * 0.1f; // 1.0, 1.1, 1.2, ...
     }
     for (size_t i = 0; i < biasData.size(); ++i) {
-        biasData[i] = static_cast<float>(i) * 0.1f;  // 0.0, 0.1, 0.2, ...
+        biasData[i] = static_cast<float>(i) * 0.1f; // 0.0, 0.1, 0.2, ...
     }
 
     x->setData(xData.data());
@@ -499,16 +531,17 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F32) {
     Runtime &runtime = RuntimeObj::getInstance();
     runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
-    Shape shapeX = {2, 3, 4, 5};  // 4D input
-    Shape shapeWeight = {5};      // normalized_shape
-    Shape shapeBias = {5};        // same as weight
+    Shape shapeX = {2, 3, 4, 5}; // 4D input
+    Shape shapeWeight = {5};     // normalized_shape
+    Shape shapeBias = {5};       // same as weight
     float eps = 1e-5f;
 
     Graph g = make_ref<GraphObj>(runtime);
     auto x = g->addTensor(shapeX, DataType(INFINI_DTYPE_F32));
     auto weight = g->addTensor(shapeWeight, DataType(INFINI_DTYPE_F32));
     auto bias = g->addTensor(shapeBias, DataType(INFINI_DTYPE_F32));
-    auto op = g->addOp<LayerNormObj>(x, weight, bias, eps, nullptr, nullptr, nullptr);
+    auto op =
+        g->addOp<LayerNormObj>(x, weight, bias, eps, nullptr, nullptr, nullptr);
 
     // Set input data
     std::vector<float> xData(x->getElement());
@@ -519,10 +552,10 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F32) {
         xData[i] = static_cast<float>((i % 20) - 10) * 0.1f; // -1.0 to 0.9
     }
     for (size_t i = 0; i < weightData.size(); ++i) {
-        weightData[i] = 1.0f + i * 0.1f;  // 1.0, 1.1, 1.2, ...
+        weightData[i] = 1.0f + i * 0.1f; // 1.0, 1.1, 1.2, ...
     }
     for (size_t i = 0; i < biasData.size(); ++i) {
-        biasData[i] = static_cast<float>(i) * 0.1f;  // 0.0, 0.1, 0.2, ...
+        biasData[i] = static_cast<float>(i) * 0.1f; // 0.0, 0.1, 0.2, ...
     }
 
     // Set input data (CPU pointers) BEFORE dataMalloc to skip GPU allocation
@@ -586,16 +619,17 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F16) {
     Runtime &runtime = RuntimeObj::getInstance();
     runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
-    Shape shapeX = {2, 3, 4, 5};  // 4D input
-    Shape shapeWeight = {5};      // normalized_shape
-    Shape shapeBias = {5};        // same as weight
+    Shape shapeX = {2, 3, 4, 5}; // 4D input
+    Shape shapeWeight = {5};     // normalized_shape
+    Shape shapeBias = {5};       // same as weight
     float eps = 1e-5f;
 
     Graph g = make_ref<GraphObj>(runtime);
     auto x = g->addTensor(shapeX, DataType(INFINI_DTYPE_F16));
     auto weight = g->addTensor(shapeWeight, DataType(INFINI_DTYPE_F16));
     auto bias = g->addTensor(shapeBias, DataType(INFINI_DTYPE_F16));
-    auto op = g->addOp<LayerNormObj>(x, weight, bias, eps, nullptr, nullptr, nullptr);
+    auto op =
+        g->addOp<LayerNormObj>(x, weight, bias, eps, nullptr, nullptr, nullptr);
 
     // Set input data
     std::vector<uint16_t> xData(x->getElement());
@@ -673,16 +707,17 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F32_NoBias) {
     Runtime &runtime = RuntimeObj::getInstance();
     runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
-    Shape shapeX = {2, 3, 4, 5};  // 4D input
-    Shape shapeWeight = {5};      // normalized_shape
-    Shape shapeBias = {};         // no bias
+    Shape shapeX = {2, 3, 4, 5}; // 4D input
+    Shape shapeWeight = {5};     // normalized_shape
+    Shape shapeBias = {};        // no bias
     float eps = 1e-5f;
 
     Graph g = make_ref<GraphObj>(runtime);
     auto x = g->addTensor(shapeX, DataType(INFINI_DTYPE_F32));
     auto weight = g->addTensor(shapeWeight, DataType(INFINI_DTYPE_F32));
     Tensor bias = nullptr;
-    auto op = g->addOp<LayerNormObj>(x, weight, bias, eps, nullptr, nullptr, nullptr);
+    auto op =
+        g->addOp<LayerNormObj>(x, weight, bias, eps, nullptr, nullptr, nullptr);
 
     // Set input data
     std::vector<float> xData(x->getElement());
@@ -692,7 +727,7 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F32_NoBias) {
         xData[i] = static_cast<float>((i % 20) - 10) * 0.1f; // -1.0 to 0.9
     }
     for (size_t i = 0; i < weightData.size(); ++i) {
-        weightData[i] = 1.0f + i * 0.1f;  // 1.0, 1.1, 1.2, ...
+        weightData[i] = 1.0f + i * 0.1f; // 1.0, 1.1, 1.2, ...
     }
 
     // Set input data (CPU pointers) BEFORE dataMalloc to skip GPU allocation
@@ -721,7 +756,8 @@ TEST(LayerNorm, LayerNorm_SingleDevice_NVIDIA_F32_NoBias) {
 
     std::cout << "NVIDIA F32 LayerNorm (No Bias) Y Output Data: " << std::endl;
     y->printData(runtime);
-    std::cout << "NVIDIA F32 LayerNorm (No Bias) Std Output Data: " << std::endl;
+    std::cout << "NVIDIA F32 LayerNorm (No Bias) Std Output Data: "
+              << std::endl;
     std->printData(runtime);
 
     // Clean up device memory

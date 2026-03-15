@@ -1,8 +1,9 @@
-#include "operators/UnaryOp.h"
 #include "core/runtime.h"
+#include "operators/UnaryOp.h"
 namespace infini {
 
-UnaryWiseObj::UnaryWiseObj(GraphObj *graph, OpType type_, Tensor input, Tensor output)
+UnaryWiseObj::UnaryWiseObj(GraphObj *graph, OpType type_, Tensor input,
+                           Tensor output)
     : OperatorObj(type_, TensorVec{input}, {output}), type(type_) {
     IT_ASSERT(checkValid(graph));
 }
@@ -62,7 +63,7 @@ void UnaryWiseObj::createOpDesc() {
     auto aShape = inputs[0]->getShape();
     auto aStride = broadcastStride(aShape, inputs[0]->getStride(), yShape);
     auto yStride = outputs[0]->getStride();
-    
+
     infiniopTensorDescriptor_t yTensor, aTensor;
     CHECK_INFINI_ERROR(infiniopCreateTensorDescriptor(
         &yTensor, yShape->size(), yShape->getConstantValue().data(),
@@ -72,27 +73,33 @@ void UnaryWiseObj::createOpDesc() {
         &aTensor, yShape->size(), yShape->getConstantValue().data(),
         aStride->getConstantValue().data(),
         inputs[0]->getDataType().getType()));
-    
+
     infiniopHandle_t handle = nullptr;
     CHECK_INFINI_ERROR(infiniopCreateHandle(&handle));
     if (type == OpType::Relu) {
         CHECK_INFINI_ERROR(infiniopCreateReluDescriptor(
-            handle, (infiniopReluDescriptor_t *)&infiniOpDesc, yTensor, aTensor));
+            handle, (infiniopReluDescriptor_t *)&infiniOpDesc, yTensor,
+            aTensor));
     } else if (type == OpType::Sigmoid) {
         CHECK_INFINI_ERROR(infiniopCreateSigmoidDescriptor(
-            handle, (infiniopSigmoidDescriptor_t *)&infiniOpDesc, yTensor, aTensor));
+            handle, (infiniopSigmoidDescriptor_t *)&infiniOpDesc, yTensor,
+            aTensor));
     } else if (type == OpType::Silu) {
         CHECK_INFINI_ERROR(infiniopCreateSiluDescriptor(
-            handle, (infiniopSiluDescriptor_t *)&infiniOpDesc, yTensor, aTensor));
+            handle, (infiniopSiluDescriptor_t *)&infiniOpDesc, yTensor,
+            aTensor));
     } else if (type == OpType::Gelu) {
         CHECK_INFINI_ERROR(infiniopCreateGeluDescriptor(
-            handle, (infiniopGeluDescriptor_t *)&infiniOpDesc, yTensor, aTensor));
+            handle, (infiniopGeluDescriptor_t *)&infiniOpDesc, yTensor,
+            aTensor));
     } else if (type == OpType::Softplus) {
         CHECK_INFINI_ERROR(infiniopCreateSoftplusDescriptor(
-            handle, (infiniopSoftplusDescriptor_t *)&infiniOpDesc, yTensor, aTensor));
+            handle, (infiniopSoftplusDescriptor_t *)&infiniOpDesc, yTensor,
+            aTensor));
     } else if (type == OpType::Tanh) {
         CHECK_INFINI_ERROR(infiniopCreateTanhDescriptor(
-            handle, (infiniopTanhDescriptor_t *)&infiniOpDesc, yTensor, aTensor));
+            handle, (infiniopTanhDescriptor_t *)&infiniOpDesc, yTensor,
+            aTensor));
     } else {
         IT_TODO_HALT_MSG("UnaryOp operator not supported yet");
     }

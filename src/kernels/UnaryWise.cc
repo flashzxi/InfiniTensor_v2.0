@@ -19,17 +19,17 @@ class UnaryOpOp : public Kernel {
             void *workspace = runtime->getWorkspace(workspace_size);
             CHECK_INFINI_ERROR(
                 infiniopRelu((infiniopReluDescriptor_t)op->getInfiniOpDesc(),
-                            workspace, workspace_size, yData, aData,
-                            runtime->getCurrentThreadContext()->stream));
+                             workspace, workspace_size, yData, aData,
+                             runtime->getCurrentThreadContext()->stream));
         } else if (type == OpType::Sigmoid) {
             CHECK_INFINI_ERROR(infiniopGetSigmoidWorkspaceSize(
                 (infiniopSigmoidDescriptor_t)op->getInfiniOpDesc(),
                 &workspace_size));
             void *workspace = runtime->getWorkspace(workspace_size);
-            CHECK_INFINI_ERROR(
-                infiniopSigmoid((infiniopSigmoidDescriptor_t)op->getInfiniOpDesc(),
-                            workspace, workspace_size, yData, aData,
-                            runtime->getCurrentThreadContext()->stream));
+            CHECK_INFINI_ERROR(infiniopSigmoid(
+                (infiniopSigmoidDescriptor_t)op->getInfiniOpDesc(), workspace,
+                workspace_size, yData, aData,
+                runtime->getCurrentThreadContext()->stream));
         } else if (type == OpType::Silu) {
             CHECK_INFINI_ERROR(infiniopGetSiluWorkspaceSize(
                 (infiniopSiluDescriptor_t)op->getInfiniOpDesc(),
@@ -37,8 +37,8 @@ class UnaryOpOp : public Kernel {
             void *workspace = runtime->getWorkspace(workspace_size);
             CHECK_INFINI_ERROR(
                 infiniopSilu((infiniopSiluDescriptor_t)op->getInfiniOpDesc(),
-                            workspace, workspace_size, yData, aData,
-                            runtime->getCurrentThreadContext()->stream));
+                             workspace, workspace_size, yData, aData,
+                             runtime->getCurrentThreadContext()->stream));
         } else if (type == OpType::Gelu) {
             CHECK_INFINI_ERROR(infiniopGetGeluWorkspaceSize(
                 (infiniopGeluDescriptor_t)op->getInfiniOpDesc(),
@@ -46,17 +46,17 @@ class UnaryOpOp : public Kernel {
             void *workspace = runtime->getWorkspace(workspace_size);
             CHECK_INFINI_ERROR(
                 infiniopGelu((infiniopGeluDescriptor_t)op->getInfiniOpDesc(),
-                            workspace, workspace_size, yData, aData,
-                            runtime->getCurrentThreadContext()->stream));
+                             workspace, workspace_size, yData, aData,
+                             runtime->getCurrentThreadContext()->stream));
         } else if (type == OpType::Softplus) {
             CHECK_INFINI_ERROR(infiniopGetSoftplusWorkspaceSize(
                 (infiniopSoftplusDescriptor_t)op->getInfiniOpDesc(),
                 &workspace_size));
             void *workspace = runtime->getWorkspace(workspace_size);
-            CHECK_INFINI_ERROR(
-                infiniopSoftplus((infiniopSoftplusDescriptor_t)op->getInfiniOpDesc(),
-                            workspace, workspace_size, yData, aData,
-                            runtime->getCurrentThreadContext()->stream));
+            CHECK_INFINI_ERROR(infiniopSoftplus(
+                (infiniopSoftplusDescriptor_t)op->getInfiniOpDesc(), workspace,
+                workspace_size, yData, aData,
+                runtime->getCurrentThreadContext()->stream));
         } else if (type == OpType::Tanh) {
             CHECK_INFINI_ERROR(infiniopGetTanhWorkspaceSize(
                 (infiniopTanhDescriptor_t)op->getInfiniOpDesc(),
@@ -64,8 +64,8 @@ class UnaryOpOp : public Kernel {
             void *workspace = runtime->getWorkspace(workspace_size);
             CHECK_INFINI_ERROR(
                 infiniopTanh((infiniopTanhDescriptor_t)op->getInfiniOpDesc(),
-                            workspace, workspace_size, yData, aData,
-                            runtime->getCurrentThreadContext()->stream));
+                             workspace, workspace_size, yData, aData,
+                             runtime->getCurrentThreadContext()->stream));
         } else {
             IT_TODO_HALT_MSG("ElemenWise operator not supported");
         }

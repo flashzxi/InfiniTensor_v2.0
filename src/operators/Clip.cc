@@ -11,9 +11,8 @@ ClipObj::ClipObj(GraphObj *graph, Tensor IN, Tensor Y, Tensor MIN, Tensor MAX)
 string ClipObj::toString() const {
     std::ostringstream os;
     os << "Clip( [IN,MIN,MAX],IN=" << inputs[0]->getGuid()
-        << ",MIN=" << inputs[1]->getGuid()
-        << ",MAX=" << inputs[2]->getGuid()
-        << ",Y=" << outputs[0]->getGuid() << " )";
+       << ",MIN=" << inputs[1]->getGuid() << ",MAX=" << inputs[2]->getGuid()
+       << ",Y=" << outputs[0]->getGuid() << " )";
     return os.str();
 }
 
@@ -36,16 +35,23 @@ optional<vector<ShapeExpr>> ClipObj::inferShape() {
     auto shapeMin = MIN->getShape();
     // auto shapeMax = MAX->getShape();
     // // support broadcast // infiniteCore不支持广播
-    // IT_ASSERT(shapeIn->size() >= shapeMin->size() && shapeIn->size() >= shapeMax->size());
-    // for (int i = 0; i < static_cast<int>(shapeMin->size()); ++i) {
-    //     IT_ASSERT((*shapeMin)[shapeMin->size() - 1 - i] == ExprObj::constant(1)
-    //             || (*shapeMin)[shapeMin->size() - 1 - i] == (*shapeIn)[shapeIn->size() - 1 - i],
-    //         "batch dimensions of IN and shapeMin must be equal or one of them is 1");
+    // IT_ASSERT(shapeIn->size() >= shapeMin->size() && shapeIn->size() >=
+    // shapeMax->size()); for (int i = 0; i <
+    // static_cast<int>(shapeMin->size()); ++i) {
+    //     IT_ASSERT((*shapeMin)[shapeMin->size() - 1 - i] ==
+    //     ExprObj::constant(1)
+    //             || (*shapeMin)[shapeMin->size() - 1 - i] ==
+    //             (*shapeIn)[shapeIn->size() - 1 - i],
+    //         "batch dimensions of IN and shapeMin must be equal or one of them
+    //         is 1");
     // }
     // for (int i = 0; i < static_cast<int>(shapeMax->size()); ++i) {
-    //     IT_ASSERT((*shapeMax)[shapeMax->size() - 1 - i] == ExprObj::constant(1)
-    //             || (*shapeMax)[shapeMax->size() - 1 - i] == (*shapeIn)[shapeIn->size() - 1 - i],
-    //         "batch dimensions of IN and shapeMax must be equal or one of them is 1");
+    //     IT_ASSERT((*shapeMax)[shapeMax->size() - 1 - i] ==
+    //     ExprObj::constant(1)
+    //             || (*shapeMax)[shapeMax->size() - 1 - i] ==
+    //             (*shapeIn)[shapeIn->size() - 1 - i],
+    //         "batch dimensions of IN and shapeMax must be equal or one of them
+    //         is 1");
     // }
     return {{shapeIn}};
 }
@@ -84,7 +90,8 @@ void ClipObj::createOpDesc() {
     CHECK_INFINI_ERROR(infiniopCreateHandle(&handle));
     // create Clip op descriptor
     CHECK_INFINI_ERROR(infiniopCreateClipDescriptor(
-        handle, (infiniopClipDescriptor_t *)&infiniOpDesc, yTensor, inTensor, minTensor, maxTensor));
+        handle, (infiniopClipDescriptor_t *)&infiniOpDesc, yTensor, inTensor,
+        minTensor, maxTensor));
 
     CHECK_INFINI_ERROR(infiniopDestroyTensorDescriptor(yTensor));
     CHECK_INFINI_ERROR(infiniopDestroyTensorDescriptor(inTensor));

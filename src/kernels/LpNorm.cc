@@ -13,11 +13,13 @@ class LpNormOp : public Kernel {
 
         size_t workspace_size = 0;
         CHECK_INFINI_ERROR(infiniopGetLPNormWorkspaceSize(
-            (infiniopLPNormDescriptor_t)op->getInfiniOpDesc(), &workspace_size));
+            (infiniopLPNormDescriptor_t)op->getInfiniOpDesc(),
+            &workspace_size));
         void *workspace = runtime->getWorkspace(workspace_size);
-        CHECK_INFINI_ERROR(infiniopLPNorm(
-            (infiniopLPNormDescriptor_t)op->getInfiniOpDesc(), workspace,
-            workspace_size, yData, xData, runtime->getCurrentThreadContext()->stream));
+        CHECK_INFINI_ERROR(
+            infiniopLPNorm((infiniopLPNormDescriptor_t)op->getInfiniOpDesc(),
+                           workspace, workspace_size, yData, xData,
+                           runtime->getCurrentThreadContext()->stream));
     }
 };
 

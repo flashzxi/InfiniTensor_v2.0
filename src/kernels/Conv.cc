@@ -11,16 +11,17 @@ class ConvOp : public Kernel {
         void *yData = (op->getOutput(0)->getRawDataPtr<void *>());
         void *const xData = (op->getInput(0)->getRawDataPtr<void *>());
         void *const weightData = (op->getInput(1)->getRawDataPtr<void *>());
-        void *const biasData = op->has_bias() ? op->getInput(2)->getRawDataPtr<void *>() : nullptr;
+        void *const biasData =
+            op->has_bias() ? op->getInput(2)->getRawDataPtr<void *>() : nullptr;
 
         size_t workspace_size = 0;
         CHECK_INFINI_ERROR(infiniopGetConvWorkspaceSize(
             (infiniopConvDescriptor_t)op->getInfiniOpDesc(), &workspace_size));
         void *workspace = runtime->getWorkspace(workspace_size);
-        CHECK_INFINI_ERROR(infiniopConv(
-            (infiniopConvDescriptor_t)op->getInfiniOpDesc(), workspace,
-            workspace_size, yData, xData, weightData, biasData,
-            runtime->getCurrentThreadContext()->stream));
+        CHECK_INFINI_ERROR(
+            infiniopConv((infiniopConvDescriptor_t)op->getInfiniOpDesc(),
+                         workspace, workspace_size, yData, xData, weightData,
+                         biasData, runtime->getCurrentThreadContext()->stream));
     }
 };
 

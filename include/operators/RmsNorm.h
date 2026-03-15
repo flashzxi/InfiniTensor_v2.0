@@ -3,12 +3,12 @@
 #include "core/operator.h"
 #include <infiniop/ops/rms_norm.h>
 
-
 namespace infini {
 class RmsNormObj : public OperatorObj {
-private:
+  private:
     float _eps;
-public:
+
+  public:
     /**
      * @brief Construct a new RmsNorm object.
      * @param graph The computation graph that this operator belongs to.

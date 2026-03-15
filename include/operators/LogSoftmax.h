@@ -5,9 +5,10 @@
 
 namespace infini {
 class LogSoftmaxObj : public OperatorObj {
-private:
+  private:
     int dim;
-public:
+
+  public:
     /**
      * @brief Construct a new LogSoftmax object.
      * @param graph The computation graph that this operator belongs to.

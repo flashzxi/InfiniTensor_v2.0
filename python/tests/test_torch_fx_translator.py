@@ -115,6 +115,7 @@ def test_basic_elementwise(runtime, torch_rng_seed):
     assert outputs[0].shape == (3, 5, 4)
     print("✅ Test passed!")
 
+
 def test_clip(runtime, torch_rng_seed):
     """Test torch.clamp with dynamic shapes"""
     print(f"Testing with runtime on device: {runtime}")
@@ -166,6 +167,7 @@ def test_clip(runtime, torch_rng_seed):
     assert outputs[0].shape == (3, 20)
     print("✅ Test passed!")
 
+
 # infiniCore 要求输入x 的rank至少为3
 # weight, bias只能是rank = 1
 def test_dynamic_conv(runtime, torch_rng_seed):
@@ -206,7 +208,9 @@ def test_dynamic_conv(runtime, torch_rng_seed):
     # Test conv2d
     class Conv2dModel(torch.nn.Module):
         def forward(self, x, weight):
-            return torch.conv2d(x, weight, stride=(2, 1), padding=(1, 1), dilation=(1, 1))
+            return torch.conv2d(
+                x, weight, stride=(2, 1), padding=(1, 1), dilation=(1, 1)
+            )
 
     model = Conv2dModel()
     input_info = [((2, 3, 16, 16), "float32"), ((4, 3, 3, 3), "float32")]
@@ -242,7 +246,9 @@ def test_dynamic_conv(runtime, torch_rng_seed):
     # Test conv3d
     class Conv3dModel(torch.nn.Module):
         def forward(self, x, weight):
-            return torch.conv3d(x, weight, stride=[2, 1, 1], padding=[1, 1, 1], dilation=[1, 1, 1])
+            return torch.conv3d(
+                x, weight, stride=[2, 1, 1], padding=[1, 1, 1], dilation=[1, 1, 1]
+            )
 
     # model = Conv3dModel()
     # input_info = [((2, 3, 8, 16, 16), "float32"), ((4, 3, 3, 3, 3), "float32")]
@@ -276,6 +282,7 @@ def test_dynamic_conv(runtime, torch_rng_seed):
     print("✅ conv3d test passed!")
     print("✅ All conv tests passed!")
 
+
 def test_dynamic_layernorm(runtime, torch_rng_seed):
     """Test torch.native_layer_norm with dynamic shapes"""
     print(f"Testing with runtime on device: {runtime}")
@@ -287,7 +294,9 @@ def test_dynamic_layernorm(runtime, torch_rng_seed):
     class LayerNormModel(torch.nn.Module):
         def forward(self, x, weight, bias):
             # normalized_shape 固定为 16
-            return torch.nn.functional.layer_norm(x, [16], weight=weight, bias=bias, eps=1e-3)
+            return torch.nn.functional.layer_norm(
+                x, [16], weight=weight, bias=bias, eps=1e-3
+            )
 
     model = LayerNormModel()
     # Initial input: [batch, features=16]
@@ -321,6 +330,7 @@ def test_dynamic_layernorm(runtime, torch_rng_seed):
     outputs = translator.get_outputs()
     assert outputs[0].shape == (1, 3, 16)
     print("✅ LayerNorm test passed!")
+
 
 def test_log_softmax(runtime, torch_rng_seed):
     """Test torch.log_softmax with dynamic shapes"""
@@ -414,6 +424,7 @@ def test_softmax(runtime, torch_rng_seed, device_type):
     assert outputs[0].shape == (3, 20)
     print("✅ Softmax test passed!")
 
+
 def test_normalize(runtime, torch_rng_seed, device_type):
     """Test torch.nn.functional.normalize with dynamic shapes"""
     # 底层 infiniCore 不支持 CPU，跳过测试
@@ -451,6 +462,7 @@ def test_normalize(runtime, torch_rng_seed, device_type):
     assert outputs[0].shape == (15, 12)
     print("✅ Normalize L2 test passed!")
 
+
 def test_rms_norm(runtime, torch_rng_seed, device_type):
     """Test torch.nn.functional.rms_norm with dynamic shapes"""
 
@@ -464,7 +476,9 @@ def test_rms_norm(runtime, torch_rng_seed, device_type):
             self.weight = torch.nn.Parameter(torch.ones(hidden_size))
 
         def forward(self, x):
-            return torch.nn.functional.rms_norm(x, (self.weight.shape[0],), self.weight, 1e-5)
+            return torch.nn.functional.rms_norm(
+                x, (self.weight.shape[0],), self.weight, 1e-5
+            )
 
     hidden_size = 16
     model = RmsNormModel(hidden_size)
@@ -489,6 +503,7 @@ def test_rms_norm(runtime, torch_rng_seed, device_type):
     outputs = translator.get_outputs()
     assert outputs[0].shape == (3, 10, hidden_size)
     print("✅ RmsNorm test passed!")
+
 
 def test_relu(runtime, torch_rng_seed):
     """Test torch.nn.functional.relu with dynamic shapes"""
@@ -519,6 +534,7 @@ def test_relu(runtime, torch_rng_seed):
     assert outputs[0].shape == (3, 10, 16)
     print("✅ ReLU test passed!")
 
+
 def test_sigmoid(runtime, torch_rng_seed):
     """Test torch.nn.functional.sigmoid with dynamic shapes"""
     print(f"Testing with runtime on device: {runtime}")
@@ -547,6 +563,7 @@ def test_sigmoid(runtime, torch_rng_seed):
     outputs = translator.get_outputs()
     assert outputs[0].shape == (3, 10, 16)
     print("✅ Sigmoid test passed!")
+
 
 def test_silu(runtime, torch_rng_seed):
     """Test torch.nn.functional.silu with dynamic shapes"""
@@ -577,6 +594,7 @@ def test_silu(runtime, torch_rng_seed):
     assert outputs[0].shape == (3, 10, 16)
     print("✅ SiLU test passed!")
 
+
 def test_gelu(runtime, torch_rng_seed):
     """Test torch.nn.functional.gelu with dynamic shapes"""
     print(f"Testing with runtime on device: {runtime}")
@@ -605,6 +623,7 @@ def test_gelu(runtime, torch_rng_seed):
     outputs = translator.get_outputs()
     assert outputs[0].shape == (3, 10, 16)
     print("✅ GELU test passed!")
+
 
 def test_softplus(runtime, torch_rng_seed):
     """Test torch.nn.functional.softplus with dynamic shapes"""
@@ -635,6 +654,7 @@ def test_softplus(runtime, torch_rng_seed):
     assert outputs[0].shape == (3, 10, 16)
     print("✅ Softplus test passed!")
 
+
 def test_tanh(runtime, torch_rng_seed):
     """Test torch.nn.functional.tanh with dynamic shapes"""
     print(f"Testing with runtime on device: {runtime}")
@@ -663,6 +683,7 @@ def test_tanh(runtime, torch_rng_seed):
     outputs = translator.get_outputs()
     assert outputs[0].shape == (3, 10, 16)
     print("✅ Tanh test passed!")
+
 
 if __name__ == "__main__":
     # Can run this file directly

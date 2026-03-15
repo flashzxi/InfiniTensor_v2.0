@@ -13,11 +13,13 @@ class LogSoftmaxOp : public Kernel {
 
         size_t workspace_size = 0;
         CHECK_INFINI_ERROR(infiniopGetLogSoftmaxWorkspaceSize(
-            (infiniopLogSoftmaxDescriptor_t)op->getInfiniOpDesc(), &workspace_size));
+            (infiniopLogSoftmaxDescriptor_t)op->getInfiniOpDesc(),
+            &workspace_size));
         void *workspace = runtime->getWorkspace(workspace_size);
         CHECK_INFINI_ERROR(infiniopLogSoftmax(
             (infiniopLogSoftmaxDescriptor_t)op->getInfiniOpDesc(), workspace,
-            workspace_size, yData, xData, runtime->getCurrentThreadContext()->stream));
+            workspace_size, yData, xData,
+            runtime->getCurrentThreadContext()->stream));
     }
 };
 

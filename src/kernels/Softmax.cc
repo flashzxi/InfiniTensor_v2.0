@@ -13,11 +13,13 @@ class SoftmaxOp : public Kernel {
 
         size_t workspace_size = 0;
         CHECK_INFINI_ERROR(infiniopGetSoftmaxWorkspaceSize(
-            (infiniopSoftmaxDescriptor_t)op->getInfiniOpDesc(), &workspace_size));
+            (infiniopSoftmaxDescriptor_t)op->getInfiniOpDesc(),
+            &workspace_size));
         void *workspace = runtime->getWorkspace(workspace_size);
-        CHECK_INFINI_ERROR(infiniopSoftmax(
-            (infiniopSoftmaxDescriptor_t)op->getInfiniOpDesc(), workspace,
-            workspace_size, yData, xData, runtime->getCurrentThreadContext()->stream));
+        CHECK_INFINI_ERROR(
+            infiniopSoftmax((infiniopSoftmaxDescriptor_t)op->getInfiniOpDesc(),
+                            workspace, workspace_size, yData, xData,
+                            runtime->getCurrentThreadContext()->stream));
     }
 };
 

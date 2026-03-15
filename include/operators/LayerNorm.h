@@ -5,10 +5,11 @@
 
 namespace infini {
 class LayerNormObj : public OperatorObj {
-private:
+  private:
     bool _has_bias;
     float _eps;
-public:
+
+  public:
     /**
      * @brief Construct a new Gemm object.
      * @param graph The computation graph that this operator belongs to.
@@ -19,7 +20,7 @@ public:
      * @param MAX
      */
     LayerNormObj(GraphObj *graph, Tensor x, Tensor weight, Tensor bias,
-        float eps, Tensor Y, Tensor Norm, Tensor Std);
+                 float eps, Tensor Y, Tensor Norm, Tensor Std);
 
     string toString() const override;
     ~LayerNormObj() override;

@@ -17,10 +17,10 @@ class ClipOp : public Kernel {
         CHECK_INFINI_ERROR(infiniopGetClipWorkspaceSize(
             (infiniopClipDescriptor_t)op->getInfiniOpDesc(), &workspace_size));
         void *workspace = runtime->getWorkspace(workspace_size);
-        CHECK_INFINI_ERROR(infiniopClip(
-            (infiniopClipDescriptor_t)op->getInfiniOpDesc(), workspace,
-            workspace_size, yData, inData, minData, maxData,
-            runtime->getCurrentThreadContext()->stream));
+        CHECK_INFINI_ERROR(
+            infiniopClip((infiniopClipDescriptor_t)op->getInfiniOpDesc(),
+                         workspace, workspace_size, yData, inData, minData,
+                         maxData, runtime->getCurrentThreadContext()->stream));
     }
 };
 

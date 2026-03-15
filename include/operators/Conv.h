@@ -5,14 +5,14 @@
 
 namespace infini {
 class ConvObj : public OperatorObj {
-private:
+  private:
     bool _has_bias;
     vector<size_t> _strides;
     vector<size_t> _dilations;
     vector<size_t> _paddings;
     int _n;
 
-public:
+  public:
     /**
      * @brief Construct a new Gemm object.
      * @param graph The computation graph that this operator belongs to.
@@ -22,13 +22,9 @@ public:
      * @param MIN
      * @param MAX
      */
-    ConvObj(GraphObj *graph,
-        Tensor x,
-        Tensor weight,
-        Tensor bias,
-        const vector<size_t>& strides,
-        const vector<size_t>& dilations,
-        const vector<size_t>& paddings, Tensor Y);
+    ConvObj(GraphObj *graph, Tensor x, Tensor weight, Tensor bias,
+            const vector<size_t> &strides, const vector<size_t> &dilations,
+            const vector<size_t> &paddings, Tensor Y);
 
     string toString() const override;
     ~ConvObj() override;

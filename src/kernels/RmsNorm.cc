@@ -14,12 +14,13 @@ class RmsNormOp : public Kernel {
 
         size_t workspace_size = 0;
         CHECK_INFINI_ERROR(infiniopGetRMSNormWorkspaceSize(
-            (infiniopRMSNormDescriptor_t)op->getInfiniOpDesc(), &workspace_size));
+            (infiniopRMSNormDescriptor_t)op->getInfiniOpDesc(),
+            &workspace_size));
         void *workspace = runtime->getWorkspace(workspace_size);
-        CHECK_INFINI_ERROR(infiniopRMSNorm(
-            (infiniopRMSNormDescriptor_t)op->getInfiniOpDesc(), workspace,
-            workspace_size, yData, xData, weightData,
-            runtime->getCurrentThreadContext()->stream));
+        CHECK_INFINI_ERROR(
+            infiniopRMSNorm((infiniopRMSNormDescriptor_t)op->getInfiniOpDesc(),
+                            workspace, workspace_size, yData, xData, weightData,
+                            runtime->getCurrentThreadContext()->stream));
     }
 };
 

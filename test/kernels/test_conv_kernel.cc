@@ -27,7 +27,8 @@ TEST(Conv, Conv_SingleDevice_CPU) {
     auto input = g->addTensor(shapeInput, DataType(INFINI_DTYPE_F32));
     auto weight = g->addTensor(shapeWeight, DataType(INFINI_DTYPE_F32));
     auto bias = g->addTensor(shapeBias, DataType(INFINI_DTYPE_F32));
-    auto op = g->addOp<ConvObj>(input, weight, bias, strides, dilations, paddings, nullptr);
+    auto op = g->addOp<ConvObj>(input, weight, bias, strides, dilations,
+                                paddings, nullptr);
 
     runtime->dataMalloc(g);
 
@@ -74,7 +75,8 @@ TEST(Conv, Conv_SingleDevice_CPU) {
     runtime->deallocHost(hostPtr);
 
     for (size_t i = 0; i < outputData.size(); ++i) {
-        EXPECT_GT(outputData[i], 0.0f) << "Output at index " << i << " is zero or negative";
+        EXPECT_GT(outputData[i], 0.0f)
+            << "Output at index " << i << " is zero or negative";
     }
 
     std::cout << "CPU Conv Test PASSED" << std::endl;
@@ -94,17 +96,14 @@ TEST(Conv, Conv_NoBias_CPU) {
     Graph g = make_ref<GraphObj>(runtime);
     auto input = g->addTensor(shapeInput, DataType(INFINI_DTYPE_F32));
     auto weight = g->addTensor(shapeWeight, DataType(INFINI_DTYPE_F32));
-    auto op = g->addOp<ConvObj>(input, weight, nullptr, strides, dilations, paddings, nullptr);
+    auto op = g->addOp<ConvObj>(input, weight, nullptr, strides, dilations,
+                                paddings, nullptr);
 
     runtime->dataMalloc(g);
 
     // Set input data - simple pattern
-    std::vector<float> inputData = {
-        1, 2, 3, 4,
-        5, 6, 7, 8,
-        9, 10, 11, 12,
-        13, 14, 15, 16
-    };
+    std::vector<float> inputData = {1, 2,  3,  4,  5,  6,  7,  8,
+                                    9, 10, 11, 12, 13, 14, 15, 16};
     std::vector<float> weightData = {1, 1, 1, 1};
 
     input->setData(inputData.data());
@@ -165,7 +164,8 @@ TEST(Conv, Conv_SingleDevice_NVIDIA_F32) {
     auto input = g->addTensor(shapeInput, DataType(INFINI_DTYPE_F32));
     auto weight = g->addTensor(shapeWeight, DataType(INFINI_DTYPE_F32));
     auto bias = g->addTensor(shapeBias, DataType(INFINI_DTYPE_F32));
-    auto op = g->addOp<ConvObj>(input, weight, bias, strides, dilations, paddings, nullptr);
+    auto op = g->addOp<ConvObj>(input, weight, bias, strides, dilations,
+                                paddings, nullptr);
 
     // Set input data
     std::vector<float> inputData(input->getElement());
@@ -228,7 +228,8 @@ TEST(Conv, Conv_SingleDevice_NVIDIA_F32) {
 
     // Verify output values are non-zero (sanity check)
     for (size_t i = 0; i < outputData.size(); ++i) {
-        EXPECT_GT(outputData[i], 0.0f) << "Output at index " << i << " is zero or negative";
+        EXPECT_GT(outputData[i], 0.0f)
+            << "Output at index " << i << " is zero or negative";
     }
 
     std::cout << "NVIDIA F32 Conv Test PASSED" << std::endl;

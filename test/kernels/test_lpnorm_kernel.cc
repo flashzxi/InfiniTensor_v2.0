@@ -133,9 +133,9 @@ TEST(LpNorm, LpNorm_SingleDevice_NVIDIA_F32_L1) {
     Runtime &runtime = RuntimeObj::getInstance();
     runtime->initThreadContext(INFINI_DEVICE_NVIDIA, 5);
 
-    Shape shapeInput = {4, 5};  // 2D input
-    int axis = 1;  // Apply lp_norm along dimension 1
-    int p = 1;     // L1 norm
+    Shape shapeInput = {4, 5}; // 2D input
+    int axis = 1;              // Apply lp_norm along dimension 1
+    int p = 1;                 // L1 norm
     float eps = 1e-12f;
 
     Graph g = make_ref<GraphObj>(runtime);

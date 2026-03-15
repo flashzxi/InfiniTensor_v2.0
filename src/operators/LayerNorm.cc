@@ -3,16 +3,11 @@
 
 namespace infini {
 
-LayerNormObj::LayerNormObj(GraphObj *graph,
-        Tensor x,
-        Tensor weight,
-        Tensor bias,
-        float eps,
-        Tensor Y,
-        Tensor Norm,
-        Tensor Std)
-            : OperatorObj(OpType::LayerNorm, TensorVec{x, weight}, {Y, Norm, Std}),
-            _has_bias(bias != nullptr), _eps(eps) {
+LayerNormObj::LayerNormObj(GraphObj *graph, Tensor x, Tensor weight,
+                           Tensor bias, float eps, Tensor Y, Tensor Norm,
+                           Tensor Std)
+    : OperatorObj(OpType::LayerNorm, TensorVec{x, weight}, {Y, Norm, Std}),
+      _has_bias(bias != nullptr), _eps(eps) {
     if (_has_bias) {
         inputs.emplace_back(bias);
     }
@@ -22,7 +17,7 @@ LayerNormObj::LayerNormObj(GraphObj *graph,
 string LayerNormObj::toString() const {
     std::ostringstream os;
     os << "LayerNorm( x=" << inputs[0]->getGuid()
-        << ", weight=" << inputs[1]->getGuid();
+       << ", weight=" << inputs[1]->getGuid();
     if (inputs[2] != nullptr) {
         os << ", bias=" << inputs[2]->getGuid();
     }
@@ -54,7 +49,8 @@ optional<vector<ShapeExpr>> LayerNormObj::inferShape() {
 }
 
 vector<DataType> LayerNormObj::inferDataType() const {
-    return {inputs[0]->getDataType(), inputs[0]->getDataType(), inputs[0]->getDataType()};
+    return {inputs[0]->getDataType(), inputs[0]->getDataType(),
+            inputs[0]->getDataType()};
 }
 
 void LayerNormObj::createOpDesc() {
@@ -89,16 +85,18 @@ void LayerNormObj::createOpDesc() {
         &xTensor, xShape->size(), xShape->getConstantValue().data(),
         xStride->getConstantValue().data(),
         inputs[0]->getDataType().getType()));
-    CHECK_INFINI_ERROR(infiniopCreateTensorDescriptor(
-        &weightTensor, weightShape->size(), weightShape->getConstantValue().data(),
-        weightStride->getConstantValue().data(),
-        inputs[1]->getDataType().getType()));
+    CHECK_INFINI_ERROR(
+        infiniopCreateTensorDescriptor(&weightTensor, weightShape->size(),
+                                       weightShape->getConstantValue().data(),
+                                       weightStride->getConstantValue().data(),
+                                       inputs[1]->getDataType().getType()));
 
     if (_has_bias) {
         auto biasShape = inputs[2]->getShape();
         auto biasStride = inputs[2]->getStride();
         CHECK_INFINI_ERROR(infiniopCreateTensorDescriptor(
-            &biasTensor, biasShape->size(), biasShape->getConstantValue().data(),
+            &biasTensor, biasShape->size(),
+            biasShape->getConstantValue().data(),
             biasStride->getConstantValue().data(),
             inputs[2]->getDataType().getType()));
     }
@@ -106,7 +104,8 @@ void LayerNormObj::createOpDesc() {
     CHECK_INFINI_ERROR(infiniopCreateHandle(&handle));
     // create Clip op descriptor
     CHECK_INFINI_ERROR(infiniopCreateLayerNormDescriptor(
-        handle, (infiniopLayerNormDescriptor_t *)&infiniOpDesc, yTensor, normTensor, stdTensor, xTensor, weightTensor, biasTensor, _eps));
+        handle, (infiniopLayerNormDescriptor_t *)&infiniOpDesc, yTensor,
+        normTensor, stdTensor, xTensor, weightTensor, biasTensor, _eps));
 
     CHECK_INFINI_ERROR(infiniopDestroyTensorDescriptor(yTensor));
     CHECK_INFINI_ERROR(infiniopDestroyTensorDescriptor(normTensor));

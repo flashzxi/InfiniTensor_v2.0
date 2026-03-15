@@ -46,7 +46,8 @@ TEST(UnaryOp, Relu_SingleDevice_NVIDIA_F32) {
     runtime->dataMalloc(g);
 
     void *deviceInput = runtime->allocDevice(input->getTotalBytes());
-    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(), INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
     input->setData(deviceInput);
 
     runtime->run(g);
@@ -84,7 +85,8 @@ TEST(UnaryOp, Sigmoid_SingleDevice_NVIDIA_F32) {
     runtime->dataMalloc(g);
 
     void *deviceInput = runtime->allocDevice(input->getTotalBytes());
-    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(), INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
     input->setData(deviceInput);
 
     runtime->run(g);
@@ -122,7 +124,8 @@ TEST(UnaryOp, Silu_SingleDevice_NVIDIA_F32) {
     runtime->dataMalloc(g);
 
     void *deviceInput = runtime->allocDevice(input->getTotalBytes());
-    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(), INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
     input->setData(deviceInput);
 
     runtime->run(g);
@@ -160,7 +163,8 @@ TEST(UnaryOp, Gelu_SingleDevice_NVIDIA_F32) {
     runtime->dataMalloc(g);
 
     void *deviceInput = runtime->allocDevice(input->getTotalBytes());
-    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(), INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
     input->setData(deviceInput);
 
     runtime->run(g);
@@ -198,7 +202,8 @@ TEST(UnaryOp, Softplus_SingleDevice_NVIDIA_F32) {
     runtime->dataMalloc(g);
 
     void *deviceInput = runtime->allocDevice(input->getTotalBytes());
-    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(), INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
     input->setData(deviceInput);
 
     runtime->run(g);
@@ -236,7 +241,8 @@ TEST(UnaryOp, Tanh_SingleDevice_NVIDIA_F32) {
     runtime->dataMalloc(g);
 
     void *deviceInput = runtime->allocDevice(input->getTotalBytes());
-    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(), INFINIRT_MEMCPY_H2D);
+    runtime->memcpy(deviceInput, inputData.data(), input->getTotalBytes(),
+                    INFINIRT_MEMCPY_H2D);
     input->setData(deviceInput);
 
     runtime->run(g);

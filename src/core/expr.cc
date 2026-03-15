@@ -7,7 +7,7 @@ namespace infini {
 // Expression Parser (supports + - * / and parentheses)
 //==================================
 class ExprParser {
-private:
+  private:
     std::string input;
     size_t pos;
 
@@ -48,7 +48,8 @@ private:
             while (pos < input.size() && std::isdigit(input[pos]))
                 pos++;
             if (pos > start)
-                return ExprObj::constant(-std::stoi(input.substr(start, pos - start)));
+                return ExprObj::constant(
+                    -std::stoi(input.substr(start, pos - start)));
             return nullptr;
         }
 
@@ -57,13 +58,15 @@ private:
             size_t start = pos;
             while (pos < input.size() && std::isdigit(input[pos]))
                 pos++;
-            return ExprObj::constant(std::stoi(input.substr(start, pos - start)));
+            return ExprObj::constant(
+                std::stoi(input.substr(start, pos - start)));
         }
 
         // Variable
         if (std::isalpha(peek()) || peek() == '_') {
             size_t start = pos;
-            while (pos < input.size() && (std::isalnum(input[pos]) || input[pos] == '_'))
+            while (pos < input.size() &&
+                   (std::isalnum(input[pos]) || input[pos] == '_'))
                 pos++;
             return ExprObj::variable(input.substr(start, pos - start));
         }
@@ -118,7 +121,7 @@ private:
         return left;
     }
 
-public:
+  public:
     ExprParser(const std::string &s) : input(s), pos(0) {}
     Expr parse() { return parseAddSub(); }
 };
@@ -309,9 +312,9 @@ bool BinaryExprObj::equals(const Expr &other) const {
         auto c1 = lhs->asConstant();                                           \
         auto c2 = rhs->asConstant();                                           \
         if (c1 && c2)                                                          \
-            return {(*c1) OP (*c2)};                                           \
+            return {(*c1)OP(*c2)};                                             \
         return std::nullopt;                                                   \
-    }                                                                          \
+    }
 
 IMPLEMENT_BINARY_EXPR(AddExprObj, ADD, +, " + ")
 IMPLEMENT_BINARY_EXPR(SubExprObj, SUB, -, " - ")

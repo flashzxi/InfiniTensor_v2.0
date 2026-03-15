@@ -32,82 +32,103 @@ Tensor GraphBuilderObj::gemm(Tensor A, Tensor B, Tensor C, float alpha,
     }
 }
 
-Tensor GraphBuilderObj::clip(Tensor IN, Tensor MIN, Tensor MAX, std::optional<Tensor> Y)
-{
+Tensor GraphBuilderObj::clip(Tensor IN, Tensor MIN, Tensor MAX,
+                             std::optional<Tensor> Y) {
     if (Y.has_value()) {
-        g->addOpWithOutputs<ClipObj>(std::move(IN), std::move(Y.value()), std::move(MAX), std::move(MIN));
+        g->addOpWithOutputs<ClipObj>(std::move(IN), std::move(Y.value()),
+                                     std::move(MAX), std::move(MIN));
         return Y.value();
     } else {
         return g
-            ->addOp<ClipObj>(std::move(IN), nullptr, std::move(MAX), std::move(MIN))
+            ->addOp<ClipObj>(std::move(IN), nullptr, std::move(MAX),
+                             std::move(MIN))
             ->getOutput(0);
     }
 }
 
 Tensor GraphBuilderObj::conv(Tensor x, Tensor weight, Tensor bias,
-        const std::vector<size_t>& strides, const std::vector<size_t>& paddings,
-        const std::vector<size_t>& dilations, int n, std::optional<Tensor> Y) {
+                             const std::vector<size_t> &strides,
+                             const std::vector<size_t> &paddings,
+                             const std::vector<size_t> &dilations, int n,
+                             std::optional<Tensor> Y) {
     if (Y.has_value()) {
         auto result = Y.value();
-        g->addOpWithOutputs<ConvObj>(std::move(x), std::move(weight), std::move(bias),
-                                     strides, dilations, paddings, std::move(Y.value()));
+        g->addOpWithOutputs<ConvObj>(std::move(x), std::move(weight),
+                                     std::move(bias), strides, dilations,
+                                     paddings, std::move(Y.value()));
         return result;
     } else {
         return g
             ->addOp<ConvObj>(std::move(x), std::move(weight), std::move(bias),
-                                 strides, dilations, paddings, nullptr)
+                             strides, dilations, paddings, nullptr)
             ->getOutput(0);
     }
 }
 
-Tensor GraphBuilderObj::layer_norm(Tensor x, Tensor weight, Tensor bias, float eps,
-        std::optional<Tensor> Y, std::optional<Tensor> Norm, std::optional<Tensor> Std) {
+Tensor GraphBuilderObj::layer_norm(Tensor x, Tensor weight, Tensor bias,
+                                   float eps, std::optional<Tensor> Y,
+                                   std::optional<Tensor> Norm,
+                                   std::optional<Tensor> Std) {
     if (Y.has_value()) {
         auto result = Y.value();
-        g->addOpWithOutputs<LayerNormObj>(std::move(x), std::move(weight), std::move(bias),
-            eps, std::move(Y.value()), std::move(Norm.value()), std::move(Std.value()));
+        g->addOpWithOutputs<LayerNormObj>(
+            std::move(x), std::move(weight), std::move(bias), eps,
+            std::move(Y.value()), std::move(Norm.value()),
+            std::move(Std.value()));
         return result;
     } else {
         return g
-            ->addOp<LayerNormObj>(std::move(x), std::move(weight), std::move(bias),
-                eps, nullptr, nullptr, nullptr)
+            ->addOp<LayerNormObj>(std::move(x), std::move(weight),
+                                  std::move(bias), eps, nullptr, nullptr,
+                                  nullptr)
             ->getOutput(0);
     }
 }
 
-Tensor GraphBuilderObj::log_softmax(Tensor x, int dim, std::optional<Tensor> Y) {
+Tensor GraphBuilderObj::log_softmax(Tensor x, int dim,
+                                    std::optional<Tensor> Y) {
     if (Y.has_value()) {
-        g->addOpWithOutputs<LogSoftmaxObj>(std::move(x), dim, std::move(Y.value()));
+        g->addOpWithOutputs<LogSoftmaxObj>(std::move(x), dim,
+                                           std::move(Y.value()));
         return Y.value();
     } else {
-        return g->addOp<LogSoftmaxObj>(std::move(x), dim, nullptr)->getOutput(0);
+        return g->addOp<LogSoftmaxObj>(std::move(x), dim, nullptr)
+            ->getOutput(0);
     }
 }
 
 Tensor GraphBuilderObj::softmax(Tensor x, int axis, std::optional<Tensor> Y) {
     if (Y.has_value()) {
-        g->addOpWithOutputs<SoftmaxObj>(std::move(x), axis, std::move(Y.value()));
+        g->addOpWithOutputs<SoftmaxObj>(std::move(x), axis,
+                                        std::move(Y.value()));
         return Y.value();
     } else {
         return g->addOp<SoftmaxObj>(std::move(x), axis, nullptr)->getOutput(0);
     }
 }
 
-Tensor GraphBuilderObj::lp_norm(Tensor x, int axis, int p, float eps, std::optional<Tensor> Y) {
+Tensor GraphBuilderObj::lp_norm(Tensor x, int axis, int p, float eps,
+                                std::optional<Tensor> Y) {
     if (Y.has_value()) {
-        g->addOpWithOutputs<LpNormObj>(std::move(x), axis, p, eps, std::move(Y.value()));
+        g->addOpWithOutputs<LpNormObj>(std::move(x), axis, p, eps,
+                                       std::move(Y.value()));
         return Y.value();
     } else {
-        return g->addOp<LpNormObj>(std::move(x), axis, p, eps, nullptr)->getOutput(0);
+        return g->addOp<LpNormObj>(std::move(x), axis, p, eps, nullptr)
+            ->getOutput(0);
     }
 }
 
-Tensor GraphBuilderObj::rms_norm(Tensor x, Tensor weight, float eps, std::optional<Tensor> Y) {
+Tensor GraphBuilderObj::rms_norm(Tensor x, Tensor weight, float eps,
+                                 std::optional<Tensor> Y) {
     if (Y.has_value()) {
-        g->addOpWithOutputs<RmsNormObj>(std::move(x), std::move(weight), eps, std::move(Y.value()));
+        g->addOpWithOutputs<RmsNormObj>(std::move(x), std::move(weight), eps,
+                                        std::move(Y.value()));
         return Y.value();
     } else {
-        return g->addOp<RmsNormObj>(std::move(x), std::move(weight), eps, nullptr)->getOutput(0);
+        return g
+            ->addOp<RmsNormObj>(std::move(x), std::move(weight), eps, nullptr)
+            ->getOutput(0);
     }
 }
 
@@ -130,15 +151,16 @@ DEFINE_BINARY_OP(sub, OpType::Sub);
 DEFINE_BINARY_OP(mul, OpType::Mul);
 
 #define DEFINE_UNARY_OP(OP, TYPE)                                              \
-Tensor GraphBuilderObj::OP(Tensor X, std::optional<Tensor> Y) {                \
-    if (Y.has_value()) {                                                       \
-        g->addOpWithOutputs<UnaryWiseObj>(TYPE, std::move(X),                    \
-                std::move(Y.value()));                                         \
-        return Y.value();                                                      \
-    } else {                                                                   \
-        return g->addOp<UnaryWiseObj>(TYPE, std::move(X), nullptr)->getOutput(0);\
-    }                                                                          \
-}
+    Tensor GraphBuilderObj::OP(Tensor X, std::optional<Tensor> Y) {            \
+        if (Y.has_value()) {                                                   \
+            g->addOpWithOutputs<UnaryWiseObj>(TYPE, std::move(X),              \
+                                              std::move(Y.value()));           \
+            return Y.value();                                                  \
+        } else {                                                               \
+            return g->addOp<UnaryWiseObj>(TYPE, std::move(X), nullptr)         \
+                ->getOutput(0);                                                \
+        }                                                                      \
+    }
 
 DEFINE_UNARY_OP(relu, OpType::Relu)
 DEFINE_UNARY_OP(sigmoid, OpType::Sigmoid)

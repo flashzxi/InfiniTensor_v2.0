@@ -3,18 +3,18 @@
 
 namespace infini {
 
-LpNormObj::LpNormObj(GraphObj *graph, Tensor x, int axis, int p, float eps, Tensor Y)
-    : OperatorObj(OpType::LpNorm, TensorVec{x}, {Y}), axis(axis), p(p), eps(eps) {
+LpNormObj::LpNormObj(GraphObj *graph, Tensor x, int axis, int p, float eps,
+                     Tensor Y)
+    : OperatorObj(OpType::LpNorm, TensorVec{x}, {Y}), axis(axis), p(p),
+      eps(eps) {
     IT_ASSERT(checkValid(graph));
 }
 
 string LpNormObj::toString() const {
     std::ostringstream os;
-    os << "LpNorm( x=" << inputs[0]->getGuid()
-        << ", axis=" << axis
-        << ", p=" << p
-        << ", eps=" << eps
-        << ", Y=" << outputs[0]->getGuid() << " )";
+    os << "LpNorm( x=" << inputs[0]->getGuid() << ", axis=" << axis
+       << ", p=" << p << ", eps=" << eps << ", Y=" << outputs[0]->getGuid()
+       << " )";
     return os.str();
 }
 
@@ -62,7 +62,8 @@ void LpNormObj::createOpDesc() {
     CHECK_INFINI_ERROR(infiniopCreateHandle(&handle));
     // create LpNorm op descriptor
     CHECK_INFINI_ERROR(infiniopCreateLPNormDescriptor(
-        handle, (infiniopLPNormDescriptor_t *)&infiniOpDesc, yTensor, xTensor, axis, p, eps));
+        handle, (infiniopLPNormDescriptor_t *)&infiniOpDesc, yTensor, xTensor,
+        axis, p, eps));
 
     CHECK_INFINI_ERROR(infiniopDestroyTensorDescriptor(yTensor));
     CHECK_INFINI_ERROR(infiniopDestroyTensorDescriptor(xTensor));

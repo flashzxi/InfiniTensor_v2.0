@@ -53,8 +53,8 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
         deviceInput = runtime->allocDevice(input->getTotalBytes());
         deviceMin = runtime->allocDevice(min->getTotalBytes());
         deviceMax = runtime->allocDevice(max->getTotalBytes());
-        runtime->memcpy(deviceInput, params.inputData.data(), input->getTotalBytes(),
-                        INFINIRT_MEMCPY_H2D);
+        runtime->memcpy(deviceInput, params.inputData.data(),
+                        input->getTotalBytes(), INFINIRT_MEMCPY_H2D);
         runtime->memcpy(deviceMin, params.minData.data(), min->getTotalBytes(),
                         INFINIRT_MEMCPY_H2D);
         runtime->memcpy(deviceMax, params.maxData.data(), max->getTotalBytes(),
@@ -99,8 +99,9 @@ template <typename T> void deviceThreadFunc(ThreadTestParams<T> &params) {
         runtime->memcpy(hostPtr, devicePtr, output->getTotalBytes(),
                         INFINIRT_MEMCPY_D2H);
         if (params.deviceName == "NVIDIA") {
-            float *debugPtr = static_cast<float*>(hostPtr);
-            std::cout << "DEBUG Clip: First value after memcpy: " << debugPtr[0] << std::endl;
+            float *debugPtr = static_cast<float *>(hostPtr);
+            std::cout << "DEBUG Clip: First value after memcpy: " << debugPtr[0]
+                      << std::endl;
         }
         copyAndConvertData(params.outputData, hostPtr, numElements,
                            params.dataType);

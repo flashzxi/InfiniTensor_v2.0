@@ -13,16 +13,19 @@ class LayerNormOp : public Kernel {
         void *devData = (op->getOutput(2)->getRawDataPtr<void *>());
         void *const xData = (op->getInput(0)->getRawDataPtr<void *>());
         void *const weightData = (op->getInput(1)->getRawDataPtr<void *>());
-        void *const biasData = op->has_bias() ? (op->getInput(2)->getRawDataPtr<void *>()) : nullptr;
+        void *const biasData = op->has_bias()
+                                   ? (op->getInput(2)->getRawDataPtr<void *>())
+                                   : nullptr;
 
         size_t workspace_size = 0;
         CHECK_INFINI_ERROR(infiniopGetLayerNormWorkspaceSize(
-            (infiniopLayerNormDescriptor_t)op->getInfiniOpDesc(), &workspace_size));
+            (infiniopLayerNormDescriptor_t)op->getInfiniOpDesc(),
+            &workspace_size));
         void *workspace = runtime->getWorkspace(workspace_size);
         CHECK_INFINI_ERROR(infiniopLayerNorm(
             (infiniopLayerNormDescriptor_t)op->getInfiniOpDesc(), workspace,
-            workspace_size, yData, normData, devData, xData, weightData, biasData,
-            runtime->getCurrentThreadContext()->stream));
+            workspace_size, yData, normData, devData, xData, weightData,
+            biasData, runtime->getCurrentThreadContext()->stream));
     }
 };
 

@@ -3,7 +3,8 @@
 
 namespace infini {
 
-RmsNormObj::RmsNormObj(GraphObj *graph, Tensor x, Tensor weight, float eps, Tensor Y)
+RmsNormObj::RmsNormObj(GraphObj *graph, Tensor x, Tensor weight, float eps,
+                       Tensor Y)
     : OperatorObj(OpType::RmsNorm, TensorVec{x, weight}, {Y}), _eps(eps) {
     IT_ASSERT(checkValid(graph));
 }
@@ -11,9 +12,8 @@ RmsNormObj::RmsNormObj(GraphObj *graph, Tensor x, Tensor weight, float eps, Tens
 string RmsNormObj::toString() const {
     std::ostringstream os;
     os << "RmsNorm( x=" << inputs[0]->getGuid()
-        << ", weight=" << inputs[1]->getGuid()
-        << ", eps=" << _eps
-        << ", Y=" << outputs[0]->getGuid() << " )";
+       << ", weight=" << inputs[1]->getGuid() << ", eps=" << _eps
+       << ", Y=" << outputs[0]->getGuid() << " )";
     return os.str();
 }
 
@@ -58,16 +58,18 @@ void RmsNormObj::createOpDesc() {
         &xTensor, xShape->size(), xShape->getConstantValue().data(),
         xStride->getConstantValue().data(),
         inputs[0]->getDataType().getType()));
-    CHECK_INFINI_ERROR(infiniopCreateTensorDescriptor(
-        &weightTensor, weightShape->size(), weightShape->getConstantValue().data(),
-        weightStride->getConstantValue().data(),
-        inputs[1]->getDataType().getType()));
+    CHECK_INFINI_ERROR(
+        infiniopCreateTensorDescriptor(&weightTensor, weightShape->size(),
+                                       weightShape->getConstantValue().data(),
+                                       weightStride->getConstantValue().data(),
+                                       inputs[1]->getDataType().getType()));
 
     infiniopHandle_t handle = nullptr;
     CHECK_INFINI_ERROR(infiniopCreateHandle(&handle));
     // create RmsNorm op descriptor
     CHECK_INFINI_ERROR(infiniopCreateRMSNormDescriptor(
-        handle, (infiniopRMSNormDescriptor_t *)&infiniOpDesc, yTensor, xTensor, weightTensor, _eps));
+        handle, (infiniopRMSNormDescriptor_t *)&infiniOpDesc, yTensor, xTensor,
+        weightTensor, _eps));
 
     CHECK_INFINI_ERROR(infiniopDestroyTensorDescriptor(yTensor));
     CHECK_INFINI_ERROR(infiniopDestroyTensorDescriptor(xTensor));

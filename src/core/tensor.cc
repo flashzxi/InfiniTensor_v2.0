@@ -75,9 +75,7 @@ void TensorObj::setData(void *data_, bool user_managed_) {
     data = std::make_shared<BlobObj>(data_);
 }
 
-void TensorObj::reset() {
-    device = INFINI_DEVICE_CPU;
-}
+void TensorObj::reset() { device = INFINI_DEVICE_CPU; }
 
 void TensorObj::dataMalloc(const Runtime &runtime) {
     size_t required_size = getTotalBytes();
